@@ -14,6 +14,10 @@
 #include "../header/nokia5110.h"
 #endif
 
+#define input (~PINC & 0x0F);
+
+/* Example code */
+/*
 enum nokia_states {init, display} nokia_state;
 
 void nokia_tick() {
@@ -36,7 +40,7 @@ void nokia_tick() {
 			nokia_lcd_clear();
 			nokia_lcd_write_string("IT'S WORKING!",1);
 			nokia_lcd_set_cursor(0, 10);
-			nokia_lcd_write_string("FUCK YOU!", 1.5);
+			nokia_lcd_write_string("Nice!", 3);
 			nokia_lcd_render();
 
 			for (;;) {
@@ -46,7 +50,7 @@ void nokia_tick() {
 		default:
 			break;
 	}
-}
+}*/
 
 int main(void) {
 	while(1) {
