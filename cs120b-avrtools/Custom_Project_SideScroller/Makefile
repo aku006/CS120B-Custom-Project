@@ -41,6 +41,7 @@ DEBUGGING=-x $(TESTCOMMANDS) -x $(INITDEBUGGER)
 PROGRAM=avrdude
 PROGRAMMER=atmelice_isp
 MEMORY=flash
+OP=w
 #mem:op:file where op is (w)rite, (r)ead, (v)erify; performed in the order specified
 VERBOSITY=#-v -v ... etc. to have more verbose output. Normal output is usually enough unless something goes wrong. 
 HIGH=hfuse
@@ -92,7 +93,7 @@ $(PATHB)main.hex: $(PATHO)main.elf
 	@$(OBJCOPY) $(OBJFLAGS) $< $@
 
 $(PATHO)main.elf: $(OBJS)
-	@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -o $@ $<
+	@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -o $@ $^
 
 $(PATHO)%.o: $(PATHS)%.c
 	@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -c -o $@ $<

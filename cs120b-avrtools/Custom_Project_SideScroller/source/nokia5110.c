@@ -11,12 +11,12 @@
  * Original library written by SkewPL, http://skew.tk
  */
 
-#include "nokia5110.h"
+#include "../header/nokia5110.h"
 
 #include <avr/pgmspace.h>
 #include <avr/io.h>
 #include <util/delay.h>
-#include "nokia5110_chars.h"
+#include "../header/nokia5110_chars.h"
 
 
 static struct {
