@@ -5,7 +5,7 @@
 #endif
 
 #include <avr/sleep.h>
-#include "simavr/sim/avr/avr_mcu_section.h"
+#include "include/simavr/avr/avr_mcu_section.h"
 AVR_MCU(F_CPU,"atmega1284");
 AVR_MCU_VCD_FILE("build/results/Custom_Project_SideScroller_trace.vcd",1000);
 
