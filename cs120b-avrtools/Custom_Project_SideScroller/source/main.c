@@ -14,15 +14,42 @@
 #include "../header/nokia5110.h"
 #endif
 
-int main(void) {
-    nokia_lcd_init();
-    nokia_lcd_clear();
-    nokia_lcd_write_string("IT'S WORKING!",1);
-    nokia_lcd_set_cursor(0, 10);
-    nokia_lcd_write_string("Nice!", 3);
-    nokia_lcd_render();
+enum nokia_states {wait, display} nokia_state;
 
-    for (;;) {
-        _delay_ms(1000);
-    }
+void nokia_tick() {
+	switch(nokia_state) {
+		case wait:
+			nokia_state = display;
+			break;
+		case display:
+			nokia_state = display;
+			break;
+		default:
+			nokia_state = init;
+			break;
+	}
+	switch(nokia_state) {
+		case wait:
+			break;
+		case display:
+			nokia_lcd_init();
+			nokia_lcd_clear();
+			nokia_lcd_write_string("IT'S WORKING!",1);
+			nokia_lcd_set_cursor(0, 10);
+			nokia_lcd_write_string("FUCK YOU!", 1.5);
+			nokia_lcd_render();
+
+			for (;;) {
+				_delay_ms(1000);
+			}
+			break;
+		default:
+			break;
+	}
+}
+
+int main(void) {
+	while(1) {
+
+	}
 }
