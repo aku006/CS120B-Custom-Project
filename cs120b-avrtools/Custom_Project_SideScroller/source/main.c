@@ -12,49 +12,74 @@
 #include <util/delay.h>
 #include "simAVRHeader.h"
 #include "../header/nokia5110.h"
+#include "../header/timer.h"
+#include "../header/scheduler.h"
 #endif
 
 #define input (~PINC & 0x0F);
 
 /* Example code */
-/*
-enum nokia_states {init, display} nokia_state;
+enum nokia_States {nok_init, nok_display};
 
-void nokia_tick() {
-	switch(nokia_state) {
-		case init:
-			nokia_state = display;
+int displaySMTick(int state) {
+	switch(state) {
+		case nok_init:
+			state = nok_display;
 			break;
-		case display:
-			nokia_state = display;
+		case nok_display:
+			state = nok_display;
 			break;
 		default:
-			nokia_state = init;
+			state = nok_init;
 			break;
 	}
-	switch(nokia_state) {
-		case init:
+	switch(state) {
+		case nok_init:
 			break;
-		case display:
+		case nok_display:
 			nokia_lcd_init();
 			nokia_lcd_clear();
 			nokia_lcd_write_string("IT'S WORKING!",1);
 			nokia_lcd_set_cursor(0, 10);
 			nokia_lcd_write_string("Nice!", 3);
 			nokia_lcd_render();
-
-			for (;;) {
-				_delay_ms(1000);
-			}
 			break;
 		default:
 			break;
 	}
-}*/
+	return state;
+}
 
 int main(void) {
+	/* Insert DDR and PORT initializations */
+	DDRC = 0x00; PORTC = 0xFF;
+
+	/* Insert your solution below */
+	static task screen_Task;
+	task *tasks[] = { &screen_Task };
+	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
+
+	/*Tasks*/
+	screen_Task.state = nok_init;
+	screen_Task.period = 5;
+	screen_Task.elapsedTime = screen_Task.period;
+	screen_Task.TickFct = &displaySMTick;
+
+	TimerSet(1);
+	TimerOn();
+
+	unsigned short i;
 	while(1) {
-		nokia_tick();
+		for (i = 0; i < numTasks; i++){
+			if(tasks[i]->elapsedTime == tasks[i]->period){
+				tasks[i]->state = tasks[i]->TickFct(tasks[i]->state);
+				tasks[i]->elapsedTime = 0;
+			}
+			tasks[i]->elapsedTime += 1;
+		}
+		while(!TimerFlag);
+		TimerFlag = 0;
+		_delay_ms(1000);
 	}
-	return 1;
+	return 0;
 }
