@@ -14,11 +14,11 @@
 #include "../header/nokia5110.h"
 #endif
 
-enum nokia_states {wait, display} nokia_state;
+enum nokia_states {init, display} nokia_state;
 
 void nokia_tick() {
 	switch(nokia_state) {
-		case wait:
+		case init:
 			nokia_state = display;
 			break;
 		case display:
@@ -29,7 +29,7 @@ void nokia_tick() {
 			break;
 	}
 	switch(nokia_state) {
-		case wait:
+		case init:
 			break;
 		case display:
 			nokia_lcd_init();
@@ -50,6 +50,7 @@ void nokia_tick() {
 
 int main(void) {
 	while(1) {
-
+		nokia_tick();
 	}
+	return 1;
 }
