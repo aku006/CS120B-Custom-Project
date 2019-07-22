@@ -122,8 +122,6 @@ int playerSMTick(int state) {
 			else {
 				for (i = 0; i < 7; i++) {
 					nokia_lcd_set_pixel(character[i].x, character[i].y, 0);
-				}
-				for (i = 0; i < 7; i++) {
 					character[i].y = character[i].y - 1;
 					nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
 				}
@@ -133,7 +131,7 @@ int playerSMTick(int state) {
 			//state = p_wait;
 			break;
 		case p_down:
-			if (character[7].y == 42) {
+			if (character[6].y == 42) {
 				for (i = 0; i < 7; i++) {
 					nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
 				}
@@ -141,8 +139,6 @@ int playerSMTick(int state) {
 			else {
 				for (i = 0; i < 7; i++) {
 					nokia_lcd_set_pixel(character[i].x, character[i].y, 0);
-				}
-				for (i = 0; i < 7; i++) {
 					character[i].y = character[i].y + 1;
 					nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
 				}
