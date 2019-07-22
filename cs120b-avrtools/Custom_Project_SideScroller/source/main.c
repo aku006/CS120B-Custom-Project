@@ -97,15 +97,19 @@ int playerSMTick(int state) {
 	}
 	switch(state) {
 		case p_init:
-			//nokia_lcd_init();
 			for (i = 0; i < 7; i++) {
 				nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
 			}
+			i = 0;
 			//nokia_lcd_clear();
 			nokia_lcd_render();
 			state = p_wait;
 			break;
 		case p_wait:
+			for (i = 0; i < 7; i++) {
+				nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
+			}
+			nokia_lcd_render();
 			break;
 		case p_press:
 			break;
@@ -116,15 +120,15 @@ int playerSMTick(int state) {
 				}
 			}
 			else {
-				//for (i = 0; i < 7; i++) {
-				//	nokia_lcd_set_pixel(character[i].x, character[i].y, 0);
-			//	}
-				nokia_lcd_clear();
 				for (i = 0; i < 7; i++) {
-					//character[i].y = character[i].y - 1;
-					nokia_lcd_set_pixel(character[i].x, character[i].y - 1, 1);
+					nokia_lcd_set_pixel(character[i].x, character[i].y, 0);
+				}
+				for (i = 0; i < 7; i++) {
+					character[i].y = character[i].y - 1;
+					nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
 				}
 			}
+			i = 0;
 			nokia_lcd_render();
 			//state = p_wait;
 			break;
@@ -135,15 +139,15 @@ int playerSMTick(int state) {
 				}
 			}
 			else {
-//				for (i = 0; i < 7; i++) {
-//					nokia_lcd_set_pixel(character[i].x, character[i].y, 0);
-//				}
-				nokia_lcd_clear();
 				for (i = 0; i < 7; i++) {
-					//character[i].y = character[i].y + 1;
-					nokia_lcd_set_pixel(character[i].x, character[i].y + 1, 1);
+					nokia_lcd_set_pixel(character[i].x, character[i].y, 0);
+				}
+				for (i = 0; i < 7; i++) {
+					character[i].y = character[i].y + 1;
+					nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
 				}
 			}
+			i = 0;
 			nokia_lcd_render();
 			//state = p_wait;
 			break;
