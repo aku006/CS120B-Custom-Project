@@ -14,6 +14,7 @@
 #include "../header/nokia5110.h"
 #include "../header/timer.h"
 #include "../header/scheduler.h"
+#include "../header/io.h"
 #endif
 
 #define input (~PINB & 0x0F)
@@ -26,6 +27,8 @@ unsigned char gameScoreOnes = 48;
 unsigned char gameStaminaTens = 48;
 unsigned char gameStaminaOnes = 53;
 unsigned short gameCnt = 0;
+
+unsigned char playerPos = 17;
 
 enum nokia_States { n_init, /*n_menu,*/ n_display, /*n_final*/ };
 
@@ -107,22 +110,88 @@ int nokiaSMTick(int state) {
 	}
 }
 
+/* Player states */
+enum player_States { p_init, p_wait, p_press, p_up, p_down };
+
+int playerSMTick(int state) {
+	switch(state) {
+		case p_init:
+			break;
+		case p_wait:
+			if (input == 0x01 || input == 0x02) {
+				state = p_press;
+			}
+			else {
+				state = p_wait;
+			}
+			break;
+		case p_press:
+			if (input == 0x01 && input != 0x02) {
+				state = p_up;
+			}
+			else if (input != 0x01 && input == 0x02) {
+				state = p_down;
+			}
+			break;
+		case p_down:
+			state = p_wait;
+		case p_up:
+			state = p_wait;
+		default:
+			state = p_init;
+			break;
+	}
+	switch(state) {
+		case p_init:
+			LCD_Cursor(playerPos);
+			state = p_down;
+			break;
+		case p_wait:
+			playerPos = playerPos;
+			LCD_Cursor(playerPos);
+			break;
+		case p_press:
+			LCD_Cursor(playerPos);
+			break;
+		case p_down:
+			playerPos = 17;
+			LCD_ClearScreen();
+			LCD_Cursor(playerPos);
+			break;
+		case p_up:
+			playerPos = 1;
+			LCD_ClearScreen();
+			LCD_Cursor(playerPos);
+			break;
+		default:
+			break;
+	}
+}
+
 int main(void) {
 	/* Insert DDR and PORT initializations */
 	DDRA = 0xFF; PORTA = 0x00;
 	DDRB = 0x00; PORTB = 0xFF;
+	DDRC = 0xFF; PORTC = 0x00;
+	DDRD = 0xFF; PORTD = 0x00;
 
-	static task player_Task;
-	task *tasks[] = { &player_Task };
+	static task player_Task, nokia_Task;
+	task *tasks[] = { &player_Task, &nokia_Task };
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 
 	/*Tasks*/
-	player_Task.state = n_init;
+	player_Task.state = p_init;
 	player_Task.period = 1;
 	player_Task.elapsedTime = 1;
-	player_Task.TickFct = &nokiaSMTick;
+	player_Task.TickFct = &playerSMTick;
+
+	nokia_Task.state = n_init;
+	nokia_Task.period = 1;
+	nokia_Task.elapsedTime = 1;
+	nokia_Task.TickFct = &nokiaSMTick;
 
 	nokia_lcd_init();
+	LCD_init();
 	TimerSet(1);
 	TimerOn();
 
