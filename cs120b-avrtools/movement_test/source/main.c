@@ -11,142 +11,102 @@
 #ifdef _SIMULATE_
 #include <util/delay.h>
 #include "simAVRHeader.h"
-//#include "../header/nokia5110.h"
-//#include "../header/timer.h"
-//#include "../header/scheduler.h"
+#include "../header/nokia5110.h"
+#include "../header/timer.h"
+#include "../header/scheduler.h"
 #endif
 
 #define input (~PINB & 0x0F)
-/*
-typedef struct _player {
-	unsigned char x;
-	unsigned char y;
-} player;
 
-player character[7];
+/* Globals */
+unsigned char gameTimeTens = 51;
+unsigned char gameTimeOnes = 48;
+unsigned char gameScoreTens = 48;
+unsigned char gameScoreOnes = 48;
+unsigned char gameStaminaTens = 48;
+unsigned char gameStaminaOnes = 53;
+unsigned short gameCnt = 1000;
 
-enum player_States { p_init, p_wait, p_press, p_up, p_down };
+enum nokia_States { n_init, /*n_menu,*/ n_display, /*n_final*/ };
 
-int playerSMTick(int state) {
-	unsigned char i = 0;
+int nokiaSMTick(int state) {
+	/* Transitions */
 	switch(state) {
-		case p_init:
+		case n_init:
+//			state = n_menu;
+			state = n_display;
 			break;
-		case p_wait:
-			if (input == 0x01 || input == 0x02) {
-				state = p_up;
+/*		case n_menu:
+			if (input == 0x01) {
+				state = n_display;
 			}
 			else {
-				state = p_wait;
+				state = n_menu;
 			}
-			state = p_wait;
-			break;
-		case p_press:
-			if (input == 0x01 && input != 0x02) {
-				state = p_up;
+			break;*/
+		case n_display:
+/*			if (gameTime == 0) {
+				state = n_final;
 			}
-			else if (input != 0x01 && input == 0x02) {
-				state = p_down;
+			else {
+				state = n_display;
+			}*/
+			state = n_display;
+			break;
+/*		case n_final:
+			if (input == 0x01) {
+				state = n_menu;
 			}
-			break;
-		case p_up:
-			state = p_wait;
-			break;
-		case p_down:
-			state = p_wait;
-			break;
+			else {
+				state = n_final;
+			}
+			break;*/
 		default:
-			state = p_init;
+			state = n_init;
 			break;
 	}
 	switch(state) {
-		case p_init:
-			for (i = 0; i < 7; i++) {
-				nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
-			}
-			i = 0;
+		case n_init:
+			break;
+		case n_display:
+			nokia_lcd_clear();
+			nokia_lcd_write_string("SCOR: ", 1);
+			nokia_lcd_set_cursor(50, 0);
+			nokia_lcd_write_char(gameScoreTens, 1);
+			nokia_lcd_set_cursor(56, 0);
+			nokia_lcd_write_char(gameScoreOnes, 1);
+			nokia_lcd_set_cursor(0, 15);
+			nokia_lcd_write_string("STAM: ", 1);
+			nokia_lcd_set_cursor(50, 15);
+			nokia_lcd_write_char(gameStaminaTens, 1);
+			nokia_lcd_set_cursor(56, 15);
+			nokia_lcd_write_char(gameStaminaOnes, 1);
+			nokia_lcd_set_cursor(0, 30);
+			nokia_lcd_write_string("TIME: ", 1);
+			nokia_lcd_set_cursor(50, 30);
+			nokia_lcd_write_char(gameTimeTens, 1);
+			nokia_lcd_set_cursor(56, 30);
+			nokia_lcd_write_char(gameTimeOnes, 1);
 			nokia_lcd_render();
-			state = p_wait;
-			break;
-		case p_wait:
-			for (i = 0; i < 7; i++) {
-				nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
-			}
-			nokia_lcd_render();
-			break;
-		case p_press:
-			break;
-		case p_up:
-			if (character[0].y == 1) {
-				for (i = 0; i < 7; i++) {
-					nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
-				}
-			}
-			else {
-				for (i = 0; i < 7; i++) {
-					nokia_lcd_set_pixel(character[i].x, character[i].y, 0);
-				}
-				for (i = 0; i < 7; i++) {
-					character[i].y = character[i].y - 1;
-					nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
-				}
-			}
-			i = 0;
-			nokia_lcd_render();
-			break;
-		case p_down:
-			if (character[7].y == 42) {
-				for (i = 0; i < 7; i++) {
-					nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
-				}
-			}
-			else {
-				for (i = 0; i < 7; i++) {
-					nokia_lcd_set_pixel(character[i].x, character[i].y, 0);
-				}
-				for (i = 0; i < 7; i++) {
-					character[i].y = character[i].y + 1;
-					nokia_lcd_set_pixel(character[i].x, character[i].y, 1);
-				}
-			}
-			i = 0;
-			nokia_lcd_render();
-			break;
 		default:
 			break;
 	}
-}*/
-			
+}
+
 int main(void) {
 	/* Insert DDR and PORT initializations */
-/*	DDRA = 0xFF; PORTA = 0x00;
+	DDRA = 0xFF; PORTA = 0x00;
 	DDRB = 0x00; PORTB = 0xFF;
-
-	character[0].x = 1;
-	character[1].x = 2;
-	character[2].x = 1;
-	character[3].x = 2;
-	character[4].x = 3;
-	character[5].x = 2;
-	character[6].x = 1;
-
-	character[0].y = 1;
-	character[1].y = 2;
-	character[2].y = 3;
-	character[3].y = 3;
-	character[4].y = 3;
-	character[5].y = 4;
-	character[6].y = 5;
 
 	static task player_Task;
 	task *tasks[] = { &player_Task };
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
-*/
+
 	/*Tasks*/
-/*	player_Task.state = p_init;
+	player_Task.state = n_init;
 	player_Task.period = 1;
 	player_Task.elapsedTime = 1;
-	player_Task.TickFct = &playerSMTick;
+	player_Task.TickFct = &nokiaSMTick;
 
 	nokia_lcd_init();
 	TimerSet(1);
@@ -165,6 +125,5 @@ int main(void) {
 		TimerFlag = 0;
 		_delay_ms(1000);
 	}
-	return 1;*/
 	return 1;	
 }
