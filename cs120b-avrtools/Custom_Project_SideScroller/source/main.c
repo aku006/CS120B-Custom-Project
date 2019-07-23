@@ -137,14 +137,20 @@ int nokiaSMTick(int state) {
 			break;
 		case n_final:
 			nokia_lcd_clear();
-			nokia_lcd_write_string("GAME", 3);
-			nokia_lcd_set_cursor(0, 25);
-			nokia_lcd_write_string("OGRE", 3);
+			nokia_lcd_write_string("FINAL SCORE:", 1);
+			nokia_lcd_set_cursor(25, 10);
+			nokia_lcd_write_char(gameScoreTens, 2);
+			nokia_lcd_set_cursor(40, 10);
+			nokia_lcd_write_char(gameScoreOnes, 2);
 			nokia_lcd_render();
 			break;
 		case n_hold:
 			nokia_lcd_clear();
-			nokia_lcd_write_string("Let go to start", 1);
+			nokia_lcd_write_string("You ready?", 1);
+			nokia_lcd_set_cursor(20, 10);
+			nokia_lcd_write_string("LET's", 2);
+			nokia_lcd_set_cursor(25, 30);
+			nokia_lcd_write_string("GO!", 2);
 			nokia_lcd_render();
 
 			gameTimeTens = 49;
