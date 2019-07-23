@@ -27,21 +27,23 @@ unsigned char gameScoreTens = 48;
 unsigned char gameScoreOnes = 48;
 unsigned char gameStaminaTens = 48;
 unsigned char gameStaminaOnes = 53;
-unsigned char displayCnt = 0;
+unsigned char runCnt = 0;
 unsigned char updateCnt = 0;
 unsigned short timerCnt = 0;
 
 unsigned char playerPos = 17;
 
+unsigned char player[8] = { 0x18, 0x0C, 0x16, 0x1D, 0x1F, 0x16, 0x0C, 0x18 };
+
 /* Nokia states */
-enum nokia_States { n_init, /*n_menu, n_start,*/ n_display, n_update, n_final };
+enum nokia_States { n_init, /*n_menu, n_start,*/ n_run, n_update, n_final };
 
 int nokiaSMTick(int state) {
 	/* Transitions */
 	switch(state) {
 		case n_init:
 //			state = n_menu;
-			state = n_display;
+			state = n_run;
 			break;
 /*		case n_menu:
 			if (start == 0x01) {
@@ -59,29 +61,23 @@ int nokiaSMTick(int state) {
 				state = n_display;
 			}
 			break;*/
-		case n_display:
-/*			if (gameTimeOnes == 48 && gameTimeTens == 48) {
-				state = n_final;
-			}
-			else {
-				state = n_display;
-			}*/
+		case n_run:
 			if (gameTimeOnes == 48 && gameTimeTens == 48) {
 				state = n_final;
 			}
-			else if (displayCnt >= 1) {
-				displayCnt = 0;
+			else if (runCnt >= 1) {
+				runCnt = 0;
 				state = n_update;
 			}
 			else {
-				displayCnt++;
-				state = n_display;
+				runCnt++;
+				state = n_run;
 			}
 			break;
 		case n_update:
 			if (updateCnt >= 1) {
 				updateCnt = 0;
-				state = n_display;
+				state = n_run;
 			}
 			else {
 				updateCnt++;
@@ -113,34 +109,18 @@ int nokiaSMTick(int state) {
 			nokia_lcd_write_string("let go", 1);
 			nokia_lcd_render();
 			break;*/
-		case n_display:
-			nokia_lcd_clear();
-			nokia_lcd_write_string("SCOR: ", 1);
-			nokia_lcd_set_cursor(50, 0);
-			nokia_lcd_write_char(gameScoreTens, 1);
-			nokia_lcd_set_cursor(56, 0);
-			nokia_lcd_write_char(gameScoreOnes, 1);
-			nokia_lcd_set_cursor(0, 15);
-			nokia_lcd_write_string("STAM: ", 1);
-			nokia_lcd_set_cursor(50, 15);
-			nokia_lcd_write_char(gameStaminaTens, 1);
-			nokia_lcd_set_cursor(56, 15);
-			nokia_lcd_write_char(gameStaminaOnes, 1);
-			nokia_lcd_set_cursor(0, 30);
-			nokia_lcd_write_string("TIME: ", 1);
-			nokia_lcd_set_cursor(50, 30);
-			nokia_lcd_write_char(gameTimeTens, 1);
-			nokia_lcd_set_cursor(56, 30);
-			nokia_lcd_write_char(gameTimeOnes, 1);
-			nokia_lcd_render();
-
+		/* Together, run and update runs for about 1 second */
+		case n_run:
 			break;
 		case n_update:
+			/* If ones digit is 0 at this point, set that to 9 and*/
+			/* subtract tens digit by one */
 			if (timerCnt >= 2 && gameTimeOnes == 48) {
 				timerCnt = 0;
 				gameTimeTens = gameTimeTens - 1;
 				gameTimeOnes = 57;
 			}
+			/* If ones digit is not 0, just subtract */
 			else if (timerCnt >= 2 && gameTimeOnes != 48) {
 				timerCnt = 0;
 				gameTimeTens = gameTimeTens;
@@ -149,6 +129,7 @@ int nokiaSMTick(int state) {
 			else {
 				timerCnt++;
 			}
+			/* Needed again to allow time to be updated */
 			nokia_lcd_clear();
 			nokia_lcd_write_string("SCOR: ", 1);
 			nokia_lcd_set_cursor(50, 0);
@@ -168,7 +149,6 @@ int nokiaSMTick(int state) {
 			nokia_lcd_set_cursor(56, 30);
 			nokia_lcd_write_char(gameTimeOnes, 1);
 			nokia_lcd_render();
-
 
 			break;
 		case n_final:
@@ -208,8 +188,10 @@ int playerSMTick(int state) {
 			break;
 		case p_down:
 			state = p_wait;
+			break;
 		case p_up:
 			state = p_wait;
+			break;
 		default:
 			state = p_init;
 			break;
@@ -217,24 +199,27 @@ int playerSMTick(int state) {
 	switch(state) {
 		case p_init:
 			LCD_Cursor(playerPos);
-			state = p_down;
+			LCD_WriteData(0);
+			state = p_wait;
 			break;
 		case p_wait:
 			playerPos = playerPos;
 			LCD_Cursor(playerPos);
+			LCD_WriteData(0);
 			break;
 		case p_press:
-			LCD_Cursor(playerPos);
 			break;
 		case p_down:
 			playerPos = 17;
 			LCD_ClearScreen();
 			LCD_Cursor(playerPos);
+			LCD_WriteData(0);
 			break;
 		case p_up:
 			playerPos = 1;
 			LCD_ClearScreen();
 			LCD_Cursor(playerPos);
+			LCD_WriteData(0);
 			break;
 		default:
 			break;
@@ -267,6 +252,8 @@ int main(void) {
 	LCD_init();
 	TimerSet(1);
 	TimerOn();
+	
+	LCD_CreateCustom(0, player);
 
 	unsigned short i;
 	while(1) {
