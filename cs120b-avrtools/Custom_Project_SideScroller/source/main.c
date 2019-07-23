@@ -34,8 +34,10 @@ unsigned short timerCnt = 0;
 unsigned char playerPos = 17;
 
 unsigned char player[8] = { 0x18, 0x0C, 0x16, 0x1D, 0x1F, 0x16, 0x0C, 0x18 };
+unsigned char gem[8] = { 0x04, 0x0A, 0x11, 0x15, 0x15, 0x11, 0x0A, 0x04 };
+unsigned char demon[8] = { 0x11, 0x1F, 0x0E, 0x04, 0x1F, 0x15, 0x0E, 0x1B };
 
-/* Nokia states */
+/* Nokia states, displays stats on the nokia screen */
 enum nokia_States { n_init, n_run, n_update, n_final, n_hold };
 
 int nokiaSMTick(int state) {
@@ -239,6 +241,25 @@ int playerSMTick(int state) {
 	return state;
 }
 
+/* 16x2 LCD Screen display states, determines what is output on the 16x2 screen */
+enum l_States { l_init, l_scroll, l_end, l_hold };
+
+int lcdSMTick(int state) {
+	switch(state) {
+		case l_init:
+			state = l_scroll;
+			break;
+		case l_scroll:
+			if (gameTimeTens == 48 && gameTimeOnes == 48) {
+				state = l_end;
+			}
+			else {
+				state = l_scroll;
+			}
+			break;
+		case l_end:
+			if (
+
 int main(void) {
 	/* Insert DDR and PORT initializations */
 	DDRA = 0xFF; PORTA = 0x00;
@@ -267,6 +288,8 @@ int main(void) {
 	TimerOn();
 	
 	LCD_CreateCustom(0, player);
+	LCD_CreateCustom(1, gem);
+	LCD_CreateCustom(2, demon);
 
 	unsigned short i;
 	while(1) {
