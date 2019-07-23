@@ -8,6 +8,7 @@
  *	code, is my own original work.
  */
 #include <avr/io.h>
+#include <avr/eeprom.h>
 #ifdef _SIMULATE_
 #include <util/delay.h>
 #include "simAVRHeader.h"
@@ -29,8 +30,6 @@ unsigned char gameStaminaOnes = 53;
 unsigned char runCnt = 0;
 unsigned char updateCnt = 0;
 unsigned short timerCnt = 0;
-
-unsigned char status = 0;
 
 unsigned char playerPos = 17;
 
@@ -113,6 +112,14 @@ int nokiaSMTick(int state) {
 			}
 			else {
 				timerCnt++;
+			}
+			
+			if (gameScoreOnes == 57) {
+				gameScoreTens = gameScoreTens + 1;
+				gameScoreOnes = 48;
+			}
+			else if (gameScoreOnes != 57) {
+				gameScoreOnes = gameScoreOnes + 1;
 			}
 			/* Update all new info */
 			nokia_lcd_clear();
