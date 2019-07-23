@@ -18,7 +18,6 @@
 #endif
 
 #define input (~PINB & 0x0F)
-#define start (~PIND & 0x0F)
 
 /* Globals */
 unsigned char gameTimeTens = 49;
@@ -31,36 +30,21 @@ unsigned char runCnt = 0;
 unsigned char updateCnt = 0;
 unsigned short timerCnt = 0;
 
+unsigned char status = 0;
+
 unsigned char playerPos = 17;
 
 unsigned char player[8] = { 0x18, 0x0C, 0x16, 0x1D, 0x1F, 0x16, 0x0C, 0x18 };
 
 /* Nokia states */
-enum nokia_States { n_init, /*n_menu, n_start,*/ n_run, n_update, n_final };
+enum nokia_States { n_init, n_run, n_update, n_final, n_hold };
 
 int nokiaSMTick(int state) {
 	/* Transitions */
 	switch(state) {
 		case n_init:
-//			state = n_menu;
 			state = n_run;
 			break;
-/*		case n_menu:
-			if (start == 0x01) {
-				state = n_start;
-			}
-			else {
-				state = n_menu;
-			}
-			break;
-		case n_start:
-			if (start == 0x01) {
-				state = n_start;
-			}
-			else if (start == 0x00) {
-				state = n_display;
-			}
-			break;*/
 		case n_run:
 			if (gameTimeOnes == 48 && gameTimeTens == 48) {
 				state = n_final;
@@ -84,14 +68,25 @@ int nokiaSMTick(int state) {
 				state = n_update;
 			}
 			break;
-/*		case n_final:
-			if (input == 0x04) {
-				state = n_menu;
+		case n_final:
+			if (input & 0x04) {
+				state = n_hold;
 			}
 			else {
 				state = n_final;
 			}
-			break;*/
+			break;
+		case n_hold:
+			if (input & 0x04) {
+				state = n_hold;
+			}
+			else if (!(input & 0x04) && !(input & 0x02) && !(input & 0x01))  {
+				state = n_run;
+			}
+			else   {
+				state = n_hold;
+			}
+			break;
 		default:
 			state = n_init;
 			break;
@@ -99,16 +94,6 @@ int nokiaSMTick(int state) {
 	switch(state) {
 		case n_init:
 			break;
-/*		case n_menu:
-			nokia_lcd_clear();
-			nokia_lcd_write_string("Press button", 1);
-			nokia_lcd_render();
-			break;
-		case n_start:
-			nokia_lcd_clear();
-			nokia_lcd_write_string("let go", 1);
-			nokia_lcd_render();
-			break;*/
 		/* Together, run and update runs for about 1 second */
 		case n_run:
 			break;
@@ -129,7 +114,7 @@ int nokiaSMTick(int state) {
 			else {
 				timerCnt++;
 			}
-			/* Needed again to allow time to be updated */
+			/* Update all new info */
 			nokia_lcd_clear();
 			nokia_lcd_write_string("SCOR: ", 1);
 			nokia_lcd_set_cursor(50, 0);
@@ -149,7 +134,6 @@ int nokiaSMTick(int state) {
 			nokia_lcd_set_cursor(56, 30);
 			nokia_lcd_write_char(gameTimeOnes, 1);
 			nokia_lcd_render();
-
 			break;
 		case n_final:
 			nokia_lcd_clear();
@@ -158,9 +142,24 @@ int nokiaSMTick(int state) {
 			nokia_lcd_write_string("OGRE", 3);
 			nokia_lcd_render();
 			break;
+		case n_hold:
+			nokia_lcd_clear();
+			nokia_lcd_write_string("Let go to start", 1);
+			nokia_lcd_render();
+
+			gameTimeTens = 49;
+			gameTimeOnes = 48;
+			runCnt = 0;
+			updateCnt = 0;
+			timerCnt = 0;
+			break;
 		default:
 			break;
 	}
+	/* Debugging part */
+//	LCD_Cursor(10);
+//	LCD_WriteData(state + '0');
+	return state;
 }
 
 /* Player states */
@@ -224,6 +223,7 @@ int playerSMTick(int state) {
 		default:
 			break;
 	}
+	return state;
 }
 
 int main(void) {
@@ -231,7 +231,7 @@ int main(void) {
 	DDRA = 0xFF; PORTA = 0x00;
 	DDRB = 0x00; PORTB = 0xFF;
 	DDRC = 0xFF; PORTC = 0x00;
-	DDRD = 0xF0; PORTD = 0x0F;
+	DDRD = 0xFF; PORTD = 0x00;
 
 	static task player_Task, nokia_Task;
 	task *tasks[] = { &player_Task, &nokia_Task };
