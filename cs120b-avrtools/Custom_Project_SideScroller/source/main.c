@@ -18,47 +18,78 @@
 #endif
 
 #define input (~PINB & 0x0F)
+#define start (~PIND & 0x0F)
 
 /* Globals */
-unsigned char gameTimeTens = 51;
+unsigned char gameTimeTens = 49;
 unsigned char gameTimeOnes = 48;
 unsigned char gameScoreTens = 48;
 unsigned char gameScoreOnes = 48;
 unsigned char gameStaminaTens = 48;
 unsigned char gameStaminaOnes = 53;
-unsigned short gameCnt = 0;
+unsigned char displayCnt = 0;
+unsigned char updateCnt = 0;
+unsigned short timerCnt = 0;
 
 unsigned char playerPos = 17;
 
-enum nokia_States { n_init, /*n_menu,*/ n_display, /*n_final*/ };
+/* Nokia states */
+enum nokia_States { n_init, /*n_menu, n_start,*/ n_display, n_update, n_final };
 
 int nokiaSMTick(int state) {
 	/* Transitions */
 	switch(state) {
 		case n_init:
+//			state = n_menu;
 			state = n_display;
 			break;
-		/*case n_menu:
-			if (input == 0x01) {
-				state = n_display;
+/*		case n_menu:
+			if (start == 0x01) {
+				state = n_start;
 			}
 			else {
 				state = n_menu;
 			}
+			break;
+		case n_start:
+			if (start == 0x01) {
+				state = n_start;
+			}
+			else if (start == 0x00) {
+				state = n_display;
+			}
 			break;*/
 		case n_display:
-			/*
-			if (gameTime == 0) {
+/*			if (gameTimeOnes == 48 && gameTimeTens == 48) {
 				state = n_final;
 			}
 			else {
 				state = n_display;
 			}*/
-
-			state = n_display;
+			if (gameTimeOnes == 48 && gameTimeTens == 48) {
+				state = n_final;
+			}
+			else if (displayCnt >= 1) {
+				displayCnt = 0;
+				state = n_update;
+			}
+			else {
+				displayCnt++;
+				state = n_display;
+			}
 			break;
-		/*case n_final:
-			if (input == 0x01) {
+		case n_update:
+			if (updateCnt >= 1) {
+				updateCnt = 0;
+				state = n_display;
+			}
+			else {
+				updateCnt++;
+				state = n_update;
+			}
+			break;
+/*		case n_final:
+			if (input == 0x04) {
 				state = n_menu;
 			}
 			else {
@@ -72,18 +103,17 @@ int nokiaSMTick(int state) {
 	switch(state) {
 		case n_init:
 			break;
+/*		case n_menu:
+			nokia_lcd_clear();
+			nokia_lcd_write_string("Press button", 1);
+			nokia_lcd_render();
+			break;
+		case n_start:
+			nokia_lcd_clear();
+			nokia_lcd_write_string("let go", 1);
+			nokia_lcd_render();
+			break;*/
 		case n_display:
-			gameCnt++;
-			if (gameCnt >= 1000) {
-				if (gameTimeOnes == 48) {
-					gameTimeOnes = 57;
-					gameTimeTens = gameTimeTens - 1;
-				}
-				else {
-					gameTimeOnes = gameTimeOnes - 1;
-				}
-			}
-
 			nokia_lcd_clear();
 			nokia_lcd_write_string("SCOR: ", 1);
 			nokia_lcd_set_cursor(50, 0);
@@ -104,6 +134,49 @@ int nokiaSMTick(int state) {
 			nokia_lcd_write_char(gameTimeOnes, 1);
 			nokia_lcd_render();
 
+			break;
+		case n_update:
+			if (timerCnt >= 2 && gameTimeOnes == 48) {
+				timerCnt = 0;
+				gameTimeTens = gameTimeTens - 1;
+				gameTimeOnes = 57;
+			}
+			else if (timerCnt >= 2 && gameTimeOnes != 48) {
+				timerCnt = 0;
+				gameTimeTens = gameTimeTens;
+				gameTimeOnes = gameTimeOnes - 1;
+			}
+			else {
+				timerCnt++;
+			}
+			nokia_lcd_clear();
+			nokia_lcd_write_string("SCOR: ", 1);
+			nokia_lcd_set_cursor(50, 0);
+			nokia_lcd_write_char(gameScoreTens, 1);
+			nokia_lcd_set_cursor(56, 0);
+			nokia_lcd_write_char(gameScoreOnes, 1);
+			nokia_lcd_set_cursor(0, 15);
+			nokia_lcd_write_string("STAM: ", 1);
+			nokia_lcd_set_cursor(50, 15);
+			nokia_lcd_write_char(gameStaminaTens, 1);
+			nokia_lcd_set_cursor(56, 15);
+			nokia_lcd_write_char(gameStaminaOnes, 1);
+			nokia_lcd_set_cursor(0, 30);
+			nokia_lcd_write_string("TIME: ", 1);
+			nokia_lcd_set_cursor(50, 30);
+			nokia_lcd_write_char(gameTimeTens, 1);
+			nokia_lcd_set_cursor(56, 30);
+			nokia_lcd_write_char(gameTimeOnes, 1);
+			nokia_lcd_render();
+
+
+			break;
+		case n_final:
+			nokia_lcd_clear();
+			nokia_lcd_write_string("GAME", 3);
+			nokia_lcd_set_cursor(0, 25);
+			nokia_lcd_write_string("OGRE", 3);
+			nokia_lcd_render();
 			break;
 		default:
 			break;
@@ -173,7 +246,7 @@ int main(void) {
 	DDRA = 0xFF; PORTA = 0x00;
 	DDRB = 0x00; PORTB = 0xFF;
 	DDRC = 0xFF; PORTC = 0x00;
-	DDRD = 0xFF; PORTD = 0x00;
+	DDRD = 0xF0; PORTD = 0x0F;
 
 	static task player_Task, nokia_Task;
 	task *tasks[] = { &player_Task, &nokia_Task };
