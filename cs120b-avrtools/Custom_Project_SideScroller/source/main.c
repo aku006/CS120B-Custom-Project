@@ -40,12 +40,13 @@ unsigned char playerPos = 17;
 unsigned char player[8] = { 0x18, 0x0C, 0x16, 0x1D, 0x1F, 0x16, 0x0C, 0x18 };
 unsigned char gem[8] = { 0x04, 0x0A, 0x11, 0x15, 0x15, 0x11, 0x0A, 0x04 };
 unsigned char demon[8] = { 0x11, 0x1F, 0x0E, 0x04, 0x1F, 0x15, 0x0E, 0x1B };
+unsigned char fruit[8] = { 0x00, 0x0E, 0x04, 0x0E, 0x1F, 0x1F, 0x0E, 0x00 };
 
 unsigned char top[17];
 unsigned char bottom[17];
 #define MAX_SIZE 25
-const unsigned char Top[MAX_SIZE + 1] = "     *       *       *     ";
-const unsigned char Bottom[MAX_SIZE + 1] = "     *       *       *     ";
+const unsigned char Top[MAX_SIZE + 1] = {0x01, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x03, 0x20, 0x20, 0x03, 0x20, 0x20, 0x01, 0x20, 0x20, 0x02, 0x20, 0x02, 0x01, 0x20 }; //26 spaces
+const unsigned char Bottom[MAX_SIZE + 1] = { 0x20, 0x20, 0x02, 0x20, 0x20, 0x01, 0x20, 0x20, 0x03, 0x20, 0x20, 0x02, 0x01, 0x02, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20, 0x01, 0x20, 0x20, 0x01, 0x20, 0x20 }; //26 spaces
 
 unsigned char start1[13] = "FISH THIEF";
 
@@ -114,7 +115,6 @@ int lcdSMTick(int state) {
 		case l_init:
 			break;
 		case l_start:
-//			LCD_ClearScreen();
 			maxIndex = 17;
 			strcpy(top, "                ");
 			strcpy(bottom, "                ");
@@ -122,7 +122,6 @@ int lcdSMTick(int state) {
 		case l_menu:
 			LCD_ClearScreen();
 			LCD_DisplayString(2, start1);
-//			LCD_DisplayString(22, start2);
 			break; 
 		case l_scroll:
 			for (loopIndex = 0; loopIndex < 16; ++loopIndex) {
@@ -145,7 +144,7 @@ int lcdSMTick(int state) {
 			}
 			break;
 		case l_final:
-			LCD_ClearScreen();
+//			LCD_ClearScreen();
 			LCD_DisplayString(1, "IT'S OVER FOR U!");
 			maxIndex = 0;
 			strncpy(top, Top, 16);
@@ -234,11 +233,11 @@ int nokiaSMTick(int state) {
 		/* Together, run and update runs for about 1 second */
 		case n_menu:
 			nokia_lcd_clear();
-			nokia_lcd_write_string("Gem:   +1 pnt", 1);
+			nokia_lcd_write_string("Gem:    +1 pnt", 1);
 			nokia_lcd_set_cursor(0, 10);
-			nokia_lcd_write_string("Demon: -1 pnt", 1);
+			nokia_lcd_write_string("Demon:  -1 pnt", 1);
 			nokia_lcd_set_cursor(0, 20);
-			nokia_lcd_write_string("Star:  +5 STAM", 1);
+			nokia_lcd_write_string("Fruit: +5 STAM", 1);
 			nokia_lcd_set_cursor(0, 30);
 			nokia_lcd_write_string("BPress: -1 STM", 1);
 			nokia_lcd_set_cursor(0, 40);
@@ -428,7 +427,6 @@ int main(void) {
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 
 	/*Tasks*/
-
 	player_Task.state = p_init;
 	player_Task.period = 25;
 	player_Task.elapsedTime = 25;
@@ -452,6 +450,7 @@ int main(void) {
 	LCD_CreateCustom(0, player);
 	LCD_CreateCustom(1, gem);
 	LCD_CreateCustom(2, demon);
+	LCD_CreateCustom(3, fruit);
 
 	unsigned short i;
 	while(1) {
@@ -464,7 +463,6 @@ int main(void) {
 		}
 		while(!TimerFlag);
 		TimerFlag = 0;
-//		_delay_ms(1000);
 	}
 	return 1;	
 }
