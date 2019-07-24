@@ -7,6 +7,9 @@
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
  */
+
+//Note: First demo completed as of 7/23/2019, Nokia LCD and custom characters working
+
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #ifdef _SIMULATE_
