@@ -435,11 +435,14 @@ int playerSMTick(int state) {
 }
 
 /* Item interactions, testing phase */
-enum item_States { i_init, i_wait, i_upScore, i_stop };
+enum item_States { i_init, i_startup, i_wait, i_upScore, i_stop };
 
 int itemSMTick(int state) {
 	switch(state) {
 		case i_init:
+			state = i_startup;
+			break;
+		case i_startup:
 			state = i_wait;
 			break;
 		case i_wait:
@@ -454,12 +457,19 @@ int itemSMTick(int state) {
 		case i_upScore:
 			state = i_wait;
 			break;
+		case i_stop:
+			
 		default:
 			state = i_init;
 			break;
 	}
 	switch(state) {
 		case i_init:
+			break;
+		case i_startup:
+			gameScoreTens = 0;
+			gameScoreOnes = 0;
+			gemCnt = 0;
 			break;
 		case i_wait:
 			gameScoreTens = gameScoreTens;
@@ -488,6 +498,8 @@ int itemSMTick(int state) {
 				gemCnt = 0;
 			}
 			break;
+		case i_stop:
+			
 		default:
 			break;
 	}
