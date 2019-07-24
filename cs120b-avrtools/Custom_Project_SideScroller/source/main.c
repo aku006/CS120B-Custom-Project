@@ -45,13 +45,13 @@ unsigned char fruit[8] = { 0x00, 0x0E, 0x04, 0x0E, 0x1F, 0x1F, 0x0E, 0x00 };
 unsigned char top[17];
 unsigned char bottom[17];
 #define MAX_SIZE 25
-const unsigned char Top[MAX_SIZE + 1] = {0x01, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x03, 0x20, 0x20, 0x03, 0x20, 0x20, 0x01, 0x20, 0x20, 0x02, 0x20, 0x02, 0x01, 0x20 }; //26 spaces
-const unsigned char Bottom[MAX_SIZE + 1] = { 0x20, 0x20, 0x02, 0x20, 0x20, 0x01, 0x20, 0x20, 0x03, 0x20, 0x20, 0x02, 0x01, 0x02, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20, 0x01, 0x20, 0x20, 0x01, 0x20, 0x20 }; //26 spaces
+const unsigned char Top[MAX_SIZE] = {0x01, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x03, 0x20, 0x20, 0x03, 0x20, 0x20, 0x01, 0x20, 0x20, 0x02, 0x20, 0x02, 0x20 }; //25 spaces
+const unsigned char Bottom[MAX_SIZE] = { 0x20, 0x20, 0x02, 0x20, 0x20, 0x01, 0x20, 0x20, 0x03, 0x20, 0x20, 0x02, 0x01, 0x02, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20, 0x01, 0x20, 0x01, 0x20, 0x20 }; //25 spaces
 
 unsigned char start1[13] = "FISH THIEF";
 
 /* 16x2 states, displays the actual game */
-enum lcd_States { l_init, l_menu, l_start, l_scroll, l_final, l_hold };
+enum lcd_States { l_init, l_menu, l_startup, l_scroll, l_final, l_hold };
 
 int lcdSMTick(int state) {
 	unsigned char loopIndex;
@@ -61,7 +61,10 @@ int lcdSMTick(int state) {
 
 	switch(state) {
 		case l_init:
-			state = l_start;
+			state = l_startup;
+			break;
+		case l_startup:
+			state = l_menu;
 			break;
 		case l_menu:
 			if (input & 0x04) {
@@ -73,9 +76,6 @@ int lcdSMTick(int state) {
 			else {
 				state = l_menu;
 			}
-			break;
-		case l_start:
-			state = l_menu;
 			break;
 		case l_scroll:
 			if (gameTimeTens == 48 && gameTimeOnes == 48) {
@@ -114,7 +114,7 @@ int lcdSMTick(int state) {
 	switch(state) {
 		case l_init:
 			break;
-		case l_start:
+		case l_startup:
 			maxIndex = 17;
 			strcpy(top, "                ");
 			strcpy(bottom, "                ");
@@ -133,9 +133,13 @@ int lcdSMTick(int state) {
 			LCD_Cursor(playerPos);
 			LCD_WriteData(0);
 			if (maxIndex < MAX_SIZE) {
-				memmove(top, top + 1, 15);
+				for (it = 0; it < 15; it++) {
+					top[it] = top[it + 1];
+				}
 				top[15] = Top[maxIndex];
-				memmove(bottom, bottom + 1, 15);
+				for (it = 0; it < 15; it++) {
+					bottom[it] = bottom[it + 1];
+				}
 				bottom[15] = Bottom[maxIndex];
 				maxIndex++;
 			}
@@ -144,7 +148,6 @@ int lcdSMTick(int state) {
 			}
 			break;
 		case l_final:
-//			LCD_ClearScreen();
 			LCD_DisplayString(1, "IT'S OVER FOR U!");
 			maxIndex = 0;
 			strncpy(top, Top, 16);
