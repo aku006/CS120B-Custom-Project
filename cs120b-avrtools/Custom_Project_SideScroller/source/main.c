@@ -47,20 +47,34 @@ unsigned char bottom[17];
 const unsigned char Top[MAX_SIZE + 1] = "     *       *       *     ";
 const unsigned char Bottom[MAX_SIZE + 1] = "     *       *       *     ";
 
+unsigned char start1[13] = "FISH THIEF";
+
 /* 16x2 states, displays the actual game */
-enum lcd_States { l_init, l_start, l_scroll, l_final /*l_hold*/ };
+enum lcd_States { l_init, l_menu, l_start, l_scroll, l_final, l_hold };
 
 int lcdSMTick(int state) {
 	unsigned char loopIndex;
 	static unsigned char maxIndex;
 	static const unsigned char end[] = "GAME OVER";
+	unsigned char it;
 
 	switch(state) {
-		case l_start:
-			state = l_init;
-			break;
 		case l_init:
-			state = l_scroll;
+			state = l_start;
+			break;
+		case l_menu:
+			if (input & 0x04) {
+				state = l_hold;
+			}
+			else if (!(input & 0x04) && !(input & 0x02) && !(input & 0x01)) {
+				state = l_menu;
+			}
+			else {
+				state = l_menu;
+			}
+			break;
+		case l_start:
+			state = l_menu;
 			break;
 		case l_scroll:
 			if (gameTimeTens == 48 && gameTimeOnes == 48) {
@@ -71,21 +85,45 @@ int lcdSMTick(int state) {
 			}
 			break;
 		case l_final:
-			state = l_final;
+			if (input & 0x04) {
+				state = l_hold;
+			}
+			else if (!(input & 0x04) && !(input & 0x02) && !(input & 0x01)) {
+				state = l_final;
+			}
+			else {
+				state = l_final;
+			}
+			break;
+		case l_hold:
+			if (input & 0x04) {
+				state = l_hold;
+			}
+			else if (!(input & 0x04) && !(input & 0x02) && !(input & 0x01)) {
+				state = l_scroll;
+			}
+			else {
+				state = l_scroll;
+			}
 			break;
 		default:
 			state = l_init;
 			break;
 	}
 	switch(state) {
-		case l_start:
-			break;
 		case l_init:
+			break;
+		case l_start:
 //			LCD_ClearScreen();
 			maxIndex = 17;
 			strcpy(top, "                ");
 			strcpy(bottom, "                ");
 			break;
+		case l_menu:
+			LCD_ClearScreen();
+			LCD_DisplayString(2, start1);
+//			LCD_DisplayString(22, start2);
+			break; 
 		case l_scroll:
 			for (loopIndex = 0; loopIndex < 16; ++loopIndex) {
 				LCD_Cursor(loopIndex + 1);
@@ -100,8 +138,6 @@ int lcdSMTick(int state) {
 				top[15] = Top[maxIndex];
 				memmove(bottom, bottom + 1, 15);
 				bottom[15] = Bottom[maxIndex];
-			//	LCD_Cursor(17);
-			//	LCD_WriteData(top[15]);
 				maxIndex++;
 			}
 			else {
@@ -109,10 +145,16 @@ int lcdSMTick(int state) {
 			}
 			break;
 		case l_final:
-			LCD_Cursor(30);
-			LCD_WriteData(1);
+			LCD_ClearScreen();
+			LCD_DisplayString(1, "IT'S OVER FOR U!");
 			maxIndex = 0;
 			strncpy(top, Top, 16);
+			break;
+		case l_hold:
+			LCD_ClearScreen();
+			maxIndex = 17;
+			strcpy(top, "                ");
+			strcpy(bottom, "                ");
 			break;
 		default:
 			break;
@@ -121,13 +163,24 @@ int lcdSMTick(int state) {
 }
 
 /* Nokia states, displays stats on the nokia screen */
-enum nokia_States { n_init, n_run, n_update, n_final, n_hold };
+enum nokia_States { n_init, n_menu, n_run, n_update, n_final, n_hold };
 
 int nokiaSMTick(int state) {
 	/* Transitions */
 	switch(state) {
 		case n_init:
-			state = n_run;
+			state = n_menu;
+			break;
+		case n_menu:
+			if (input & 0x04) {
+				state = n_hold;
+			}
+			else if (!(input & 0x04) && !(input & 0x02) && !(input & 0x01)) {
+				state = n_menu;
+			}
+			else {
+				state = n_menu;
+			}
 			break;
 		case n_run:
 			if (gameTimeOnes == 48 && gameTimeTens == 48) {
@@ -179,6 +232,19 @@ int nokiaSMTick(int state) {
 		case n_init:
 			break;
 		/* Together, run and update runs for about 1 second */
+		case n_menu:
+			nokia_lcd_clear();
+			nokia_lcd_write_string("Gem:   +1 pnt", 1);
+			nokia_lcd_set_cursor(0, 10);
+			nokia_lcd_write_string("Demon: -1 pnt", 1);
+			nokia_lcd_set_cursor(0, 20);
+			nokia_lcd_write_string("Star:  +5 STAM", 1);
+			nokia_lcd_set_cursor(0, 30);
+			nokia_lcd_write_string("BPress: -1 STM", 1);
+			nokia_lcd_set_cursor(0, 40);
+			nokia_lcd_write_string("PRESS RED BUTT", 1);
+			nokia_lcd_render();
+			break;
 		case n_run:
 			break;
 		case n_update:
@@ -263,14 +329,14 @@ int nokiaSMTick(int state) {
 
 /* Player states */
 
-enum player_States { p_init, p_wait, p_press, p_up, p_down };
+enum player_States { p_init, p_wait, p_press, p_up, p_upHold, p_down, p_downHold };
 
 int playerSMTick(int state) {
 	switch(state) {
 		case p_init:
 			break;
 		case p_wait:
-			if (input == 0x01 || input == 0x02) {
+			if ((input == 0x01 || input == 0x02) && (gameStaminaTens >= 48) && (gameStaminaOnes > 48)) {
 				state = p_press;
 			}
 			else {
@@ -279,9 +345,25 @@ int playerSMTick(int state) {
 			break;
 		case p_press:
 			if (input == 0x01 && input != 0x02) {
-				state = p_up;
+				state = p_upHold;
 			}
 			else if (input != 0x01 && input == 0x02) {
+				state = p_downHold;
+			}
+			break;
+		case p_upHold:
+			if ((input & 0x01)) {
+				state = p_upHold;
+			}
+			else {
+				state = p_up;
+			}
+			break;
+		case p_downHold:
+			if ((input & 0x02)) {
+				state = p_downHold;
+			}
+			else {
 				state = p_down;
 			}
 			break;
@@ -297,28 +379,36 @@ int playerSMTick(int state) {
 	}
 	switch(state) {
 		case p_init:
-//			LCD_Cursor(playerPos);
-//			LCD_WriteData(0);
 			state = p_wait;
 			break;
 		case p_wait:
 			playerPos = playerPos;
-//			LCD_Cursor(playerPos);
-//			LCD_WriteData(0);
 			break;
 		case p_press:
 			break;
+		case p_downHold:
+			break;
+		case p_upHold:
+			break;
 		case p_down:
+			if (gameStaminaOnes == 48) {
+				gameStaminaTens = gameStaminaTens - 1;
+				gameStaminaOnes = 57;
+			}
+			else {
+				gameStaminaOnes = gameStaminaOnes - 1;
+			}
 			playerPos = 17;
-//			LCD_ClearScreen();
-//			LCD_Cursor(playerPos);
-//			LCD_WriteData(0);
 			break;
 		case p_up:
+			if (gameStaminaOnes == 48) {
+				gameStaminaTens = gameStaminaTens - 1;
+				gameStaminaOnes = 57;
+			}
+			else {
+				gameStaminaOnes = gameStaminaOnes - 1;
+			}
 			playerPos = 1;
-//			LCD_ClearScreen();
-//			LCD_Cursor(playerPos);
-//			LCD_WriteData(0);
 			break;
 		default:
 			break;
@@ -344,7 +434,7 @@ int main(void) {
 	player_Task.elapsedTime = 25;
 	player_Task.TickFct = &playerSMTick;
 
-	lcd_Task.state = l_start;
+	lcd_Task.state = l_init;
 	lcd_Task.period = 150;
 	lcd_Task.elapsedTime = 150;
 	lcd_Task.TickFct = &lcdSMTick;
