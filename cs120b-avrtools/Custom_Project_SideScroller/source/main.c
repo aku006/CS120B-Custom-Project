@@ -20,7 +20,7 @@
 #include "../header/timer.h"
 #include "../header/scheduler.h"
 #include "../header/io.h"
-#include <string.h>
+//#include <string.h>
 
 #define input (~PINB & 0x0F)
 
