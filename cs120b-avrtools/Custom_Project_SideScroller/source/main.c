@@ -244,22 +244,6 @@ int playerSMTick(int state) {
 /* 16x2 LCD Screen display states, determines what is output on the 16x2 screen */
 enum l_States { l_init, l_scroll, l_end, l_hold };
 
-int lcdSMTick(int state) {
-	switch(state) {
-		case l_init:
-			state = l_scroll;
-			break;
-		case l_scroll:
-			if (gameTimeTens == 48 && gameTimeOnes == 48) {
-				state = l_end;
-			}
-			else {
-				state = l_scroll;
-			}
-			break;
-		case l_end:
-			if (
-
 int main(void) {
 	/* Insert DDR and PORT initializations */
 	DDRA = 0xFF; PORTA = 0x00;
