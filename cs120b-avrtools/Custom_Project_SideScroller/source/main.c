@@ -435,7 +435,7 @@ int playerSMTick(int state) {
 }
 
 /* Item interactions, testing phase */
-enum item_States { i_init, i_startup, i_wait, i_upScore, i_stop };
+enum item_States { i_init, i_startup, i_wait, i_upScore };
 
 int itemSMTick(int state) {
 	switch(state) {
@@ -443,11 +443,22 @@ int itemSMTick(int state) {
 			state = i_startup;
 			break;
 		case i_startup:
-			state = i_wait;
+			if (gameTimeTens == 48 && gameTimeOnes == 48) {
+				state = i_startup;
+			}
+			else if ((gameTimeTens > 48) || (gameTimeTens == 48 && gameTimeOnes > 48)) {
+				state = i_wait;
+			}
+			else {
+				state = i_startup;
+			}
 			break;
 		case i_wait:
 //			if (/*(top[0] == 0x01 && playerPos == 1) ||*/ (bottom[0] == 0x01 && playerPos == 17)) {
-			if (test[0] == 0x01 && playerPos == 17) {
+			if (gameTimeTens == 48 && gameTimeOnes == 48) {
+				state = i_startup;
+			}
+			else if ((test[0] == 0x01 && playerPos == 17) && ((gameTimeTens > 48) || (gameTimeTens == 48 && gameTimeOnes > 48))) {
 				state = i_upScore;
 			}
 			else {
@@ -457,8 +468,6 @@ int itemSMTick(int state) {
 		case i_upScore:
 			state = i_wait;
 			break;
-		case i_stop:
-			
 		default:
 			state = i_init;
 			break;
@@ -476,30 +485,23 @@ int itemSMTick(int state) {
 			gameScoreOnes = gameScoreOnes;
 			break;
 		case i_upScore:
-			//First three cases apply for while the timer is running
-			//If ones digit is 9, increment tens digit by one and set ones digit to 0
-			if (gameScoreOnes == 57 && gemCnt >= 2 && ((gameTimeTens == 48 && gameTimeOnes > 48) || (gameTimeTens > 48))) {
+			//gemCnt needs to be at least 2 for a score to be counted
+			//If ones digit is 9 and gemCnt is at least 2, increment tens digit by one and set ones digit to 0
+			if (gameScoreOnes == 57 && gemCnt >= 2) {
 				gemCnt = 0;
 				gameScoreTens = gameScoreTens + 1;
 				gameScoreOnes = 48;
 			}
-			//If ones digit is less than 9, just update ones digit
-			else if (gameScoreOnes != 57 && gemCnt >= 2 && ((gameTimeTens == 48 && gameTimeOnes > 48) || (gameTimeTens > 48))){
+			//If ones digit is less than 9 and gemCnt is at least 2, just update ones digit
+			else if (gameScoreOnes != 57 && gemCnt >= 2){
 				gemCnt = 0;
 				gameScoreOnes = gameScoreOnes + 1;
 			}
-			//If the count is less than 2, increment the count
-			//Need count to be at least 2 to register a point
-			else if (gemCnt < 2 && ((gameTimeTens == 48 && gameTimeOnes > 48) || (gameTimeTens > 48))) {
+			//Otherwise increment gemCnt
+			else {
 				gemCnt++;
 			}
-			//If time runs out, just set count to 0
-			else {
-				gemCnt = 0;
-			}
 			break;
-		case i_stop:
-			
 		default:
 			break;
 	}
