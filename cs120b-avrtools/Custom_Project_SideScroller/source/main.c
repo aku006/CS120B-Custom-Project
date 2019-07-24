@@ -42,11 +42,13 @@ unsigned char gem[8] = { 0x04, 0x0A, 0x11, 0x15, 0x15, 0x11, 0x0A, 0x04 };
 unsigned char demon[8] = { 0x11, 0x1F, 0x0E, 0x04, 0x1F, 0x15, 0x0E, 0x1B };
 
 unsigned char top[17];
-#define MAX_SIZE 30
+unsigned char bottom[17];
+#define MAX_SIZE 25
 const unsigned char Top[MAX_SIZE + 1] = "     *       *       *     ";
+const unsigned char Bottom[MAX_SIZE + 1] = "     *       *       *     ";
 
 /* 16x2 states, displays the actual game */
-enum lcd_States { l_init, l_scroll, l_final /*l_hold*/ };
+enum lcd_States { l_init, l_start, l_scroll, l_final /*l_hold*/ };
 
 int lcdSMTick(int state) {
 	unsigned char loopIndex;
@@ -54,6 +56,9 @@ int lcdSMTick(int state) {
 	static const unsigned char end[] = "GAME OVER";
 
 	switch(state) {
+		case l_start:
+			state = l_init;
+			break;
 		case l_init:
 			state = l_scroll;
 			break;
@@ -73,24 +78,30 @@ int lcdSMTick(int state) {
 			break;
 	}
 	switch(state) {
+		case l_start:
+			break;
 		case l_init:
+//			LCD_ClearScreen();
 			maxIndex = 17;
-			strncpy(top, Top, 16);
-			for (loopIndex = 1; loopIndex < 16; ++loopIndex) {
-				LCD_Cursor(loopIndex + 1);
-				LCD_WriteData(top[loopIndex]);
-			}
-			LCD_Cursor(playerPos + 1);
+			strcpy(top, "                ");
+			strcpy(bottom, "                ");
 			break;
 		case l_scroll:
-			for (loopIndex = 1; loopIndex < 16; ++loopIndex) {
+			for (loopIndex = 0; loopIndex < 16; ++loopIndex) {
 				LCD_Cursor(loopIndex + 1);
 				LCD_WriteData(top[loopIndex]);
+				LCD_Cursor(loopIndex + 17);
+				LCD_WriteData(bottom[loopIndex]);
 			}
-			LCD_Cursor(playerPos + 1);
+			LCD_Cursor(playerPos);
+			LCD_WriteData(0);
 			if (maxIndex < MAX_SIZE) {
 				memmove(top, top + 1, 15);
 				top[15] = Top[maxIndex];
+				memmove(bottom, bottom + 1, 15);
+				bottom[15] = Bottom[maxIndex];
+			//	LCD_Cursor(17);
+			//	LCD_WriteData(top[15]);
 				maxIndex++;
 			}
 			else {
@@ -215,6 +226,7 @@ int nokiaSMTick(int state) {
 			nokia_lcd_set_cursor(56, 30);
 			nokia_lcd_write_char(gameTimeOnes, 1);
 			nokia_lcd_render();
+			_delay_ms(50);
 			break;
 		case n_final:
 			nokia_lcd_clear();
@@ -250,6 +262,7 @@ int nokiaSMTick(int state) {
 }
 
 /* Player states */
+
 enum player_States { p_init, p_wait, p_press, p_up, p_down };
 
 int playerSMTick(int state) {
@@ -284,28 +297,28 @@ int playerSMTick(int state) {
 	}
 	switch(state) {
 		case p_init:
-			LCD_Cursor(playerPos);
-			LCD_WriteData(0);
+//			LCD_Cursor(playerPos);
+//			LCD_WriteData(0);
 			state = p_wait;
 			break;
 		case p_wait:
 			playerPos = playerPos;
-			LCD_Cursor(playerPos);
-			LCD_WriteData(0);
+//			LCD_Cursor(playerPos);
+//			LCD_WriteData(0);
 			break;
 		case p_press:
 			break;
 		case p_down:
 			playerPos = 17;
-			LCD_ClearScreen();
-			LCD_Cursor(playerPos);
-			LCD_WriteData(0);
+//			LCD_ClearScreen();
+//			LCD_Cursor(playerPos);
+//			LCD_WriteData(0);
 			break;
 		case p_up:
 			playerPos = 1;
-			LCD_ClearScreen();
-			LCD_Cursor(playerPos);
-			LCD_WriteData(0);
+//			LCD_ClearScreen();
+//			LCD_Cursor(playerPos);
+//			LCD_WriteData(0);
 			break;
 		default:
 			break;
@@ -321,25 +334,26 @@ int main(void) {
 	DDRD = 0xFF; PORTD = 0x00;
 
 	static task player_Task, nokia_Task, lcd_Task;
-	task *tasks[] = { &player_Task, &nokia_Task, &lcd_Task };
+	task *tasks[] = { &player_Task, &lcd_Task, &nokia_Task };
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 
 	/*Tasks*/
+
 	player_Task.state = p_init;
-	player_Task.period = 1;
-	player_Task.elapsedTime = 1;
+	player_Task.period = 25;
+	player_Task.elapsedTime = 25;
 	player_Task.TickFct = &playerSMTick;
 
-	nokia_Task.state = n_init;
-	nokia_Task.period = 1;
-	nokia_Task.elapsedTime = 1;
-	nokia_Task.TickFct = &nokiaSMTick;
-	
-	lcd_Task.state = l_init;
-	lcd_Task.period = 1;
-	lcd_Task.elapsedTime = 1;
+	lcd_Task.state = l_start;
+	lcd_Task.period = 150;
+	lcd_Task.elapsedTime = 150;
 	lcd_Task.TickFct = &lcdSMTick;
 
+	nokia_Task.state = n_init;
+	nokia_Task.period = 100;
+	nokia_Task.elapsedTime = 100;
+	nokia_Task.TickFct = &nokiaSMTick;
+	
 	nokia_lcd_init();
 	LCD_init();
 	TimerSet(1);
@@ -360,7 +374,7 @@ int main(void) {
 		}
 		while(!TimerFlag);
 		TimerFlag = 0;
-		_delay_ms(1000);
+//		_delay_ms(1000);
 	}
 	return 1;	
 }
