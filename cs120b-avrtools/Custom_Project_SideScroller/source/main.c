@@ -11,15 +11,16 @@
 //Note: First demo completed as of 7/23/2019, Nokia LCD and custom characters working
 
 #include <avr/io.h>
-#include <avr/eeprom.h>
+//#include <avr/eeprom.h>
 #ifdef _SIMULATE_
-#include <util/delay.h>
 #include "simAVRHeader.h"
+#endif
+#include <util/delay.h>
 #include "../header/nokia5110.h"
 #include "../header/timer.h"
 #include "../header/scheduler.h"
 #include "../header/io.h"
-#endif
+#include <string.h>
 
 #define input (~PINB & 0x0F)
 
@@ -39,6 +40,74 @@ unsigned char playerPos = 17;
 unsigned char player[8] = { 0x18, 0x0C, 0x16, 0x1D, 0x1F, 0x16, 0x0C, 0x18 };
 unsigned char gem[8] = { 0x04, 0x0A, 0x11, 0x15, 0x15, 0x11, 0x0A, 0x04 };
 unsigned char demon[8] = { 0x11, 0x1F, 0x0E, 0x04, 0x1F, 0x15, 0x0E, 0x1B };
+
+unsigned char top[17];
+#define MAX_SIZE 30
+const unsigned char Top[MAX_SIZE + 1] = "     *       *       *     ";
+
+/* 16x2 states, displays the actual game */
+enum lcd_States { l_init, l_scroll, l_final /*l_hold*/ };
+
+int lcdSMTick(int state) {
+	unsigned char loopIndex;
+	static unsigned char maxIndex;
+	static const unsigned char end[] = "GAME OVER";
+
+	switch(state) {
+		case l_init:
+			state = l_scroll;
+			break;
+		case l_scroll:
+			if (gameTimeTens == 48 && gameTimeOnes == 48) {
+				state = l_final;
+			}
+			else {
+				state = l_scroll;
+			}
+			break;
+		case l_final:
+			state = l_final;
+			break;
+		default:
+			state = l_init;
+			break;
+	}
+	switch(state) {
+		case l_init:
+			maxIndex = 17;
+			strncpy(top, Top, 16);
+			for (loopIndex = 1; loopIndex < 16; ++loopIndex) {
+				LCD_Cursor(loopIndex + 1);
+				LCD_WriteData(top[loopIndex]);
+			}
+			LCD_Cursor(playerPos + 1);
+			break;
+		case l_scroll:
+			for (loopIndex = 1; loopIndex < 16; ++loopIndex) {
+				LCD_Cursor(loopIndex + 1);
+				LCD_WriteData(top[loopIndex]);
+			}
+			LCD_Cursor(playerPos + 1);
+			if (maxIndex < MAX_SIZE) {
+				memmove(top, top + 1, 15);
+				top[15] = Top[maxIndex];
+				maxIndex++;
+			}
+			else {
+				maxIndex = 0;
+			}
+			break;
+		case l_final:
+			LCD_Cursor(30);
+			LCD_WriteData(1);
+			maxIndex = 0;
+			strncpy(top, Top, 16);
+			break;
+		default:
+			break;
+	}
+	return state;
+}
 
 /* Nokia states, displays stats on the nokia screen */
 enum nokia_States { n_init, n_run, n_update, n_final, n_hold };
@@ -244,9 +313,6 @@ int playerSMTick(int state) {
 	return state;
 }
 
-/* 16x2 LCD Screen display states, determines what is output on the 16x2 screen */
-enum l_States { l_init, l_scroll, l_end, l_hold };
-
 int main(void) {
 	/* Insert DDR and PORT initializations */
 	DDRA = 0xFF; PORTA = 0x00;
@@ -254,8 +320,8 @@ int main(void) {
 	DDRC = 0xFF; PORTC = 0x00;
 	DDRD = 0xFF; PORTD = 0x00;
 
-	static task player_Task, nokia_Task;
-	task *tasks[] = { &player_Task, &nokia_Task };
+	static task player_Task, nokia_Task, lcd_Task;
+	task *tasks[] = { &player_Task, &nokia_Task, &lcd_Task };
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 
 	/*Tasks*/
@@ -268,6 +334,11 @@ int main(void) {
 	nokia_Task.period = 1;
 	nokia_Task.elapsedTime = 1;
 	nokia_Task.TickFct = &nokiaSMTick;
+	
+	lcd_Task.state = l_init;
+	lcd_Task.period = 1;
+	lcd_Task.elapsedTime = 1;
+	lcd_Task.TickFct = &lcdSMTick;
 
 	nokia_lcd_init();
 	LCD_init();
