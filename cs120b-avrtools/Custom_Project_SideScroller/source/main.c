@@ -148,7 +148,7 @@ int lcdSMTick(int state) {
 			}
 			break;
 		case l_final:
-			LCD_DisplayString(1, "IT'S OVER FOR U!");
+			LCD_DisplayString(1, "TIME'S UP!");
 			maxIndex = 0;
 			strncpy(top, Top, 16);
 			break;
@@ -244,7 +244,7 @@ int nokiaSMTick(int state) {
 			nokia_lcd_set_cursor(0, 30);
 			nokia_lcd_write_string("BPress: -1 STM", 1);
 			nokia_lcd_set_cursor(0, 40);
-			nokia_lcd_write_string("PRESS RED BUTT", 1);
+			nokia_lcd_write_string("HOLD RED BUTT.", 1);
 			nokia_lcd_render();
 			break;
 		case n_run:
@@ -252,13 +252,13 @@ int nokiaSMTick(int state) {
 		case n_update:
 			/* If ones digit is 0 at this point, set that to 9 and*/
 			/* subtract tens digit by one */
-			if (timerCnt >= 2 && gameTimeOnes == 48) {
+			if (timerCnt >= 1 && gameTimeOnes == 48) {
 				timerCnt = 0;
 				gameTimeTens = gameTimeTens - 1;
 				gameTimeOnes = 57;
 			}
 			/* If ones digit is not 0, just subtract */
-			else if (timerCnt >= 2 && gameTimeOnes != 48) {
+			else if (timerCnt >= 1 && gameTimeOnes != 48) {
 				timerCnt = 0;
 				gameTimeTens = gameTimeTens;
 				gameTimeOnes = gameTimeOnes - 1;
@@ -303,13 +303,17 @@ int nokiaSMTick(int state) {
 			nokia_lcd_write_char(gameScoreTens, 2);
 			nokia_lcd_set_cursor(40, 10);
 			nokia_lcd_write_char(gameScoreOnes, 2);
+			nokia_lcd_set_cursor(0, 25);
+			nokia_lcd_write_string("Hold red butt.", 1);
+			nokia_lcd_set_cursor(0, 35);
+			nokia_lcd_write_string("to play again", 1);
 			nokia_lcd_render();
 			break;
 		case n_hold:
 			nokia_lcd_clear();
 			nokia_lcd_write_string("You ready?", 1);
-			nokia_lcd_set_cursor(20, 10);
-			nokia_lcd_write_string("LET's", 2);
+			nokia_lcd_set_cursor(10, 10);
+			nokia_lcd_write_string("LET('s)", 2);
 			nokia_lcd_set_cursor(25, 30);
 			nokia_lcd_write_string("GO!", 2);
 			nokia_lcd_render();
@@ -418,6 +422,17 @@ int playerSMTick(int state) {
 	return state;
 }
 
+/* Item interactions, testing phase */
+enum item_States { i_init, i_wait, i_upScore, i_downScore, i_upStamina };
+
+int itemSMTick(int state) {
+	switch(state) {
+		case i_init:
+			state = i_upScore;
+			break;
+		case i_wait:
+			if ((top[0] == gem &&
+
 int main(void) {
 	/* Insert DDR and PORT initializations */
 	DDRA = 0xFF; PORTA = 0x00;
@@ -441,8 +456,8 @@ int main(void) {
 	lcd_Task.TickFct = &lcdSMTick;
 
 	nokia_Task.state = n_init;
-	nokia_Task.period = 100;
-	nokia_Task.elapsedTime = 100;
+	nokia_Task.period = 130;
+	nokia_Task.elapsedTime = 130;
 	nokia_Task.TickFct = &nokiaSMTick;
 	
 	nokia_lcd_init();
