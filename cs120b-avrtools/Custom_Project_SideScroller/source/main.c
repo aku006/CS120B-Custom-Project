@@ -35,6 +35,8 @@ unsigned char runCnt = 0;
 unsigned char updateCnt = 0;
 unsigned short timerCnt = 0;
 
+unsigned char gemCnt = 0;
+
 unsigned char playerPos = 17;
 
 unsigned char player[8] = { 0x18, 0x0C, 0x16, 0x1D, 0x1F, 0x16, 0x0C, 0x18 };
@@ -42,11 +44,13 @@ unsigned char gem[8] = { 0x04, 0x0A, 0x11, 0x15, 0x15, 0x11, 0x0A, 0x04 };
 unsigned char demon[8] = { 0x11, 0x1F, 0x0E, 0x04, 0x1F, 0x15, 0x0E, 0x1B };
 unsigned char fruit[8] = { 0x00, 0x0E, 0x04, 0x0E, 0x1F, 0x1F, 0x0E, 0x00 };
 
-unsigned char top[17];
-unsigned char bottom[17];
+//unsigned char top[17];
+//unsigned char bottom[17];
+unsigned char test[17];
 #define MAX_SIZE 25
-const unsigned char Top[MAX_SIZE] = {0x01, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x03, 0x20, 0x20, 0x03, 0x20, 0x20, 0x01, 0x20, 0x20, 0x02, 0x20, 0x02, 0x20 }; //25 spaces
-const unsigned char Bottom[MAX_SIZE] = { 0x20, 0x20, 0x02, 0x20, 0x20, 0x01, 0x20, 0x20, 0x03, 0x20, 0x20, 0x02, 0x01, 0x02, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20, 0x01, 0x20, 0x01, 0x20, 0x20 }; //25 spaces
+//const unsigned char Top[MAX_SIZE] = {0x01, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x03, 0x20, 0x20, 0x03, 0x20, 0x20, 0x01, 0x20, 0x20, 0x02, 0x20, 0x02, 0x20 }; //25 spaces
+//const unsigned char Bottom[MAX_SIZE] = { 0x20, 0x20, 0x02, 0x20, 0x20, 0x01, 0x20, 0x20, 0x03, 0x20, 0x20, 0x02, 0x01, 0x02, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20, 0x01, 0x20, 0x01, 0x20, 0x20 }; //25 spaces
+const unsigned char Test[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x03, 0x20 };
 
 unsigned char start1[13] = "FISH THIEF";
 
@@ -116,31 +120,38 @@ int lcdSMTick(int state) {
 			break;
 		case l_startup:
 			maxIndex = 17;
-			strcpy(top, "                ");
-			strcpy(bottom, "                ");
+//			strcpy(top, "                ");
+			strcpy(test, Test);
+//			strcpy(bottom, Bottom);
 			break;
 		case l_menu:
 			LCD_ClearScreen();
 			LCD_DisplayString(2, start1);
 			break; 
 		case l_scroll:
+//			LCD_ClearScreen();
 			for (loopIndex = 0; loopIndex < 16; ++loopIndex) {
-				LCD_Cursor(loopIndex + 1);
-				LCD_WriteData(top[loopIndex]);
+//				LCD_Cursor(loopIndex + 1);
+//				LCD_WriteData(top[loopIndex]);
 				LCD_Cursor(loopIndex + 17);
-				LCD_WriteData(bottom[loopIndex]);
+//				LCD_WriteData(bottom[loopIndex]);
+				LCD_WriteData(test[loopIndex]);
 			}
 			LCD_Cursor(playerPos);
 			LCD_WriteData(0);
 			if (maxIndex < MAX_SIZE) {
+//				for (it = 0; it < 15; it++) {
+//					top[it] = top[it + 1];
+//				}
+//				top[15] = Top[maxIndex];
+//				for (it = 0; it < 15; it++) {
+//					bottom[it] = bottom[it + 1];
+//				}
+//				bottom[15] = Bottom[maxIndex];
 				for (it = 0; it < 15; it++) {
-					top[it] = top[it + 1];
+					test[it] = test[it + 1];
 				}
-				top[15] = Top[maxIndex];
-				for (it = 0; it < 15; it++) {
-					bottom[it] = bottom[it + 1];
-				}
-				bottom[15] = Bottom[maxIndex];
+				test[15] = Test[maxIndex];
 				maxIndex++;
 			}
 			else {
@@ -150,13 +161,14 @@ int lcdSMTick(int state) {
 		case l_final:
 			LCD_DisplayString(1, "TIME'S UP!");
 			maxIndex = 0;
-			strncpy(top, Top, 16);
+//			strncpy(top, Top, 16);
 			break;
 		case l_hold:
 			LCD_ClearScreen();
 			maxIndex = 17;
-			strcpy(top, "                ");
-			strcpy(bottom, "                ");
+//			strcpy(top, Top);
+//			strcpy(bottom, Bottom);
+			strcpy(test, Test);
 			break;
 		default:
 			break;
@@ -267,13 +279,13 @@ int nokiaSMTick(int state) {
 				timerCnt++;
 			}
 			
-			if (gameScoreOnes == 57) {
+/*			if (gameScoreOnes == 57) {
 				gameScoreTens = gameScoreTens + 1;
 				gameScoreOnes = 48;
 			}
 			else if (gameScoreOnes != 57) {
 				gameScoreOnes = gameScoreOnes + 1;
-			}
+			}*/
 			/* Update all new info */
 			nokia_lcd_clear();
 			nokia_lcd_write_string("SCOR: ", 1);
@@ -423,15 +435,64 @@ int playerSMTick(int state) {
 }
 
 /* Item interactions, testing phase */
-enum item_States { i_init, i_wait, i_upScore, i_downScore, i_upStamina };
+enum item_States { i_init, i_wait, i_upScore, i_stop };
 
 int itemSMTick(int state) {
 	switch(state) {
 		case i_init:
-			state = i_upScore;
+			state = i_wait;
 			break;
 		case i_wait:
-			if ((top[0] == gem &&
+//			if (/*(top[0] == 0x01 && playerPos == 1) ||*/ (bottom[0] == 0x01 && playerPos == 17)) {
+			if (test[0] == 0x01 && playerPos == 17) {
+				state = i_upScore;
+			}
+			else {
+				state = i_wait;
+			}
+			break;
+		case i_upScore:
+			state = i_wait;
+			break;
+		default:
+			state = i_init;
+			break;
+	}
+	switch(state) {
+		case i_init:
+			break;
+		case i_wait:
+			gameScoreTens = gameScoreTens;
+			gameScoreOnes = gameScoreOnes;
+			break;
+		case i_upScore:
+			//First three cases apply for while the timer is running
+			//If ones digit is 9, increment tens digit by one and set ones digit to 0
+			if (gameScoreOnes == 57 && gemCnt >= 2 && ((gameTimeTens == 48 && gameTimeOnes > 48) || (gameTimeTens > 48))) {
+				gemCnt = 0;
+				gameScoreTens = gameScoreTens + 1;
+				gameScoreOnes = 48;
+			}
+			//If ones digit is less than 9, just update ones digit
+			else if (gameScoreOnes != 57 && gemCnt >= 2 && ((gameTimeTens == 48 && gameTimeOnes > 48) || (gameTimeTens > 48))){
+				gemCnt = 0;
+				gameScoreOnes = gameScoreOnes + 1;
+			}
+			//If the count is less than 2, increment the count
+			//Need count to be at least 2 to register a point
+			else if (gemCnt < 2 && ((gameTimeTens == 48 && gameTimeOnes > 48) || (gameTimeTens > 48))) {
+				gemCnt++;
+			}
+			//If time runs out, just set count to 0
+			else {
+				gemCnt = 0;
+			}
+			break;
+		default:
+			break;
+	}
+	return state;
+}
 
 int main(void) {
 	/* Insert DDR and PORT initializations */
@@ -440,24 +501,31 @@ int main(void) {
 	DDRC = 0xFF; PORTC = 0x00;
 	DDRD = 0xFF; PORTD = 0x00;
 
-	static task player_Task, nokia_Task, lcd_Task;
-	task *tasks[] = { &player_Task, &lcd_Task, &nokia_Task };
+	static task player_Task, item_Task, nokia_Task, lcd_Task;
+	task *tasks[] = { &player_Task, &item_Task, &lcd_Task, &nokia_Task };
 	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 
+
+//Note: Times doubled to slow down the game atm
 	/*Tasks*/
 	player_Task.state = p_init;
-	player_Task.period = 25;
-	player_Task.elapsedTime = 25;
+	player_Task.period = 50;
+	player_Task.elapsedTime = 50;
 	player_Task.TickFct = &playerSMTick;
 
+	item_Task.state = i_init;
+	item_Task.period = 50;
+	item_Task.elapsedTime = 50;
+	item_Task.TickFct = &itemSMTick;
+
 	lcd_Task.state = l_init;
-	lcd_Task.period = 150;
-	lcd_Task.elapsedTime = 150;
+	lcd_Task.period = 300;
+	lcd_Task.elapsedTime = 300;
 	lcd_Task.TickFct = &lcdSMTick;
 
 	nokia_Task.state = n_init;
-	nokia_Task.period = 130;
-	nokia_Task.elapsedTime = 130;
+	nokia_Task.period = 260;
+	nokia_Task.elapsedTime = 260;
 	nokia_Task.TickFct = &nokiaSMTick;
 	
 	nokia_lcd_init();
