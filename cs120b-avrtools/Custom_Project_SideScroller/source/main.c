@@ -20,6 +20,7 @@
 #include "../header/timer.h"
 #include "../header/scheduler.h"
 #include "../header/io.h"
+#include <avr/eeprom.h>
 
 #define input (~PINB & 0x0F)
 
@@ -206,12 +207,17 @@ int lcdSMTick(int state) {
 }
 
 /* Nokia states, displays stats on the nokia screen */
-enum nokia_States { n_init, n_menu, n_reset, n_run, n_update, n_final, n_hold };
+enum nokia_States { n_init, n_init2, n_menu, n_reset, n_run, n_update, n_final, n_hold };
 
 int nokiaSMTick(int state) {
+	unsigned char eeScore;
+
 	/* Transitions */
 	switch(state) {
 		case n_init:
+			state = n_init2;
+			break;
+		case n_init2:
 			state = n_menu;
 			break;
 		case n_menu:
@@ -276,6 +282,20 @@ int nokiaSMTick(int state) {
 	}
 	switch(state) {
 		case n_init:
+			break;
+		case n_init2:
+			//First time firing up eeprom_read_byte
+			if (eeprom_read_byte((const uint8_t*)5) >= 255) {
+				highScoreTens = 48;
+				highScoreOnes = 48;
+			}
+			//If a high score is stored in here, get the high score
+			else {
+				eeScore = eeprom_read_byte((const uint8_t*)5);
+				highScoreTens = (eeScore / 10) + 48;
+				highScoreOnes = (eeScore % 10) + 48;
+			}
+
 			break;
 		/* Display menu, will never come back here */
 		case n_menu:
@@ -357,6 +377,8 @@ int nokiaSMTick(int state) {
 				highScoreTens = highScoreTens;
 				highScoreOnes = highScoreOnes;
 			}
+			eeScore = ((highScoreTens - 48) * 10) + (highScoreOnes - 48);
+			eeprom_update_byte((uint8_t*)5, eeScore);
 
 			nokia_lcd_clear();
 			nokia_lcd_write_string("FINAL SCORE:", 1);
