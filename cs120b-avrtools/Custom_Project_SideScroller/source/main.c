@@ -510,7 +510,7 @@ int itemSMTick(int state) {
 			}
 			//If ones digit is 9 and gemCnt is at least 2, increment tens digit by one and set ones digit to 0
 			else if (gameScoreOnes == 57 && gemCnt >= 2) {
-//				gemCnt = 0;
+				gemCnt = 0;
 				gameScoreTens = gameScoreTens + 1;
 				gameScoreOnes = 48;
 			}
