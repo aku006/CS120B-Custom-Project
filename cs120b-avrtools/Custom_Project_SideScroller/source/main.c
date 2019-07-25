@@ -306,7 +306,7 @@ int nokiaSMTick(int state) {
 			//First time firing up eeprom_read_byte
 			if (eeprom_read_byte((const uint8_t*)5) >= 255) {
 				highScoreTens = 48;
-				highScoreOnes = 48;
+				highScoreOnes = 53;
 			}
 			//If a high score is stored in here, get the high score
 			else {
@@ -442,8 +442,11 @@ int playerSMTick(int state) {
 		case p_init:
 			break;
 		case p_wait:
+			if (input & 0x08) {
+				state = p_init;
+			}
 			//Move up or down as long as there is stamina remaining
-			if ((input == 0x01 || input == 0x02) && ((gameStaminaTens > 48) || ((gameStaminaTens == 48) && (gameStaminaOnes > 48)))) {
+			else if ((input == 0x01 || input == 0x02) && ((gameStaminaTens > 48) || ((gameStaminaTens == 48) && (gameStaminaOnes > 48)))) {
 				state = p_press;
 			}
 			else {
@@ -486,6 +489,7 @@ int playerSMTick(int state) {
 	}
 	switch(state) {
 		case p_init:
+			playerPos = 17; //Remove this if needed
 			state = p_wait;
 			break;
 		case p_wait:
@@ -595,7 +599,7 @@ int itemSMTick(int state) {
 			demonCnt = 0;
 			fruitCnt = 0;
 			gameScoreTens = 48;
-			gameScoreOnes = 53;
+			gameScoreOnes = 48;
 			gameStaminaTens = 48;
 			gameStaminaOnes = 53;
 			break;
