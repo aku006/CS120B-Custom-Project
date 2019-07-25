@@ -100,6 +100,9 @@ int lcdSMTick(int state) {
 			else if (!(input & 0x04) && !(input & 0x02) && !(input & 0x01)) {
 				state = l_menu;
 			}
+			else if (input & 0x08) {
+				state = l_init;
+			}
 			else {
 				state = l_menu;
 			}
@@ -111,12 +114,18 @@ int lcdSMTick(int state) {
 			if (gameTimeTens == 48 && gameTimeOnes == 48) {
 				state = l_final;
 			}
+			else if (input & 0x08) {
+				state = l_init;
+			}
 			else {
 				state = l_scroll;
 			}
 			break;
 		case l_final:
-			if (input & 0x04) {
+			if (input & 0x08) {
+				state = l_init;
+			}
+			else if (input & 0x04) {
 				state = l_hold;
 			}
 			else if (!(input & 0x04) && !(input & 0x02) && !(input & 0x01)) {
@@ -236,6 +245,10 @@ int nokiaSMTick(int state) {
 			if (gameTimeOnes == 48 && gameTimeTens == 48) {
 				state = n_final;
 			}
+			//Reset button
+			else if (input & 0x08) {
+				state = n_init;
+			}
 			else if (runCnt >= 1) {
 				runCnt = 0;
 				state = n_update;
@@ -246,7 +259,11 @@ int nokiaSMTick(int state) {
 			}
 			break;
 		case n_update:
-			if (updateCnt >= 1) {
+			//reset while updating
+			if (input & 0x08) {
+				state = n_init;
+			}
+			else if (updateCnt >= 1) {
 				updateCnt = 0;
 				state = n_run;
 			}
@@ -258,6 +275,10 @@ int nokiaSMTick(int state) {
 		case n_final:
 			if (input & 0x04) {
 				state = n_hold;
+			}
+			//reset in final screen
+			else if (input & 0x08) {
+				state = n_init;
 			}
 			else {
 				state = n_final;
@@ -514,7 +535,10 @@ int itemSMTick(int state) {
 			state = i_startup;
 			break;
 		case i_startup:
-			if (gameTimeTens == 48 && gameTimeOnes == 48) {
+			if (input & 0x08) {
+				state = i_init;
+			}
+			else if (gameTimeTens == 48 && gameTimeOnes == 48) {
 				state = i_startup;
 			}
 			else if ((gameTimeTens > 48) || (gameTimeTens == 48 && gameTimeOnes > 48)) {
@@ -528,7 +552,10 @@ int itemSMTick(int state) {
 			state = i_wait;
 			break;
 		case i_wait:
-			if (gameTimeTens == 48 && gameTimeOnes == 48) {
+			if (input & 0x08) {
+				state = i_init;
+			}
+			else if (gameTimeTens == 48 && gameTimeOnes == 48) {
 				state = i_startup;
 			}
 			else if ((top[0] == 0x01 && playerPos == 1) || (bottom[0] == 0x01 && playerPos == 17)) {
