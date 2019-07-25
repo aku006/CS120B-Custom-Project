@@ -311,10 +311,8 @@ int nokiaSMTick(int state) {
 			break;
 		/* Reset stats each time */
 		case n_reset:
-			gameTimeTens = 51;
+			gameTimeTens = 50;
 			gameTimeOnes = 48;
-//			gameStaminaTens = 48;
-//			gameStaminaOnes = 53;
 			runCnt = 0;
 			updateCnt = 0;
 			timerCnt = 0;
@@ -570,7 +568,7 @@ int itemSMTick(int state) {
 			demonCnt = 0;
 			fruitCnt = 0;
 			gameScoreTens = 48;
-			gameScoreOnes = 48;
+			gameScoreOnes = 53;
 			gameStaminaTens = 48;
 			gameStaminaOnes = 53;
 			break;
@@ -627,13 +625,13 @@ int itemSMTick(int state) {
 			break;
 		case i_upStam:
 			//If stamina is in the nineties, automatically convert to 99
-			if (gameStaminaTens == 57 && fruitCnt >= 1) {
+			if (gameStaminaTens == 57 && fruitCnt >= 2) {
 				fruitCnt = 0;
 				gameStaminaTens = 57;
 				gameStaminaOnes = 57;
 			}
 			//If tens is not in nineties, increment tens by one
-			else if (gameStaminaTens < 57 && fruitCnt >= 1) {
+			else if (gameStaminaTens < 57 && fruitCnt >= 2) {
 				fruitCnt = 0;
 				gameStaminaTens = gameStaminaTens + 1;
 			}
