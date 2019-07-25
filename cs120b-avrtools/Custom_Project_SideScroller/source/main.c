@@ -34,6 +34,9 @@ unsigned char runCnt = 0;
 unsigned char updateCnt = 0;
 unsigned short timerCnt = 0;
 
+unsigned char highScoreTens = 48;
+unsigned char highScoreOnes = 48;
+
 unsigned char gemCnt = 0;
 unsigned char demonCnt = 0;
 unsigned char fruitCnt = 0;
@@ -290,7 +293,7 @@ int nokiaSMTick(int state) {
 			break;
 		/* Reset stats each time */
 		case n_reset:
-			gameTimeTens = 51;
+			gameTimeTens = 49;
 			gameTimeOnes = 48;
 			runCnt = 0;
 			updateCnt = 0;
@@ -341,10 +344,16 @@ int nokiaSMTick(int state) {
 		case n_final:
 			nokia_lcd_clear();
 			nokia_lcd_write_string("FINAL SCORE:", 1);
-			nokia_lcd_set_cursor(25, 10);
-			nokia_lcd_write_char(gameScoreTens, 2);
-			nokia_lcd_set_cursor(40, 10);
-			nokia_lcd_write_char(gameScoreOnes, 2);
+			nokia_lcd_set_cursor(73, 0);
+			nokia_lcd_write_char(gameScoreTens, 1);
+			nokia_lcd_set_cursor(79, 0);
+			nokia_lcd_write_char(gameScoreOnes, 1);
+			nokia_lcd_set_cursor(0, 10);
+			nokia_lcd_write_string("HIGH SCORE:", 1);
+			nokia_lcd_set_cursor(73, 10);
+			nokia_lcd_write_char(highScoreTens, 1);
+			nokia_lcd_set_cursor(79, 10);
+			nokia_lcd_write_char(highScoreOnes, 1);
 			nokia_lcd_set_cursor(0, 25);
 			nokia_lcd_write_string("Hold red butt.", 1);
 			nokia_lcd_set_cursor(0, 35);
