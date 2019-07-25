@@ -76,7 +76,7 @@ unsigned char top[17];
 unsigned char bottom[17];
 //unsigned char test[17];
 
-unsigned char start1[13] = "FISH THIEF";
+unsigned char start1[15] = "GETAWAY SWIMMER";
 
 /* 16x2 states, displays the actual game */
 enum lcd_States { l_init, l_menu, l_reset, l_startup, l_scroll, l_final, l_hold };
@@ -151,7 +151,7 @@ int lcdSMTick(int state) {
 			break;
 		case l_menu:
 			LCD_ClearScreen();
-			LCD_DisplayString(2, start1);
+			LCD_DisplayString(1, start1);
 			break;
 		case l_reset:
 			LCD_ClearScreen();
@@ -295,6 +295,8 @@ int nokiaSMTick(int state) {
 		case n_reset:
 			gameTimeTens = 49;
 			gameTimeOnes = 48;
+			gameStaminaTens = 48;
+			gameStaminaOnes = 53;
 			runCnt = 0;
 			updateCnt = 0;
 			timerCnt = 0;
@@ -342,6 +344,20 @@ int nokiaSMTick(int state) {
 			_delay_ms(50);
 			break;
 		case n_final:
+			/* Update the high score here, since it needs to be displayed immediately afterwards */
+			if (gameScoreTens > highScoreTens) {
+				highScoreTens = gameScoreTens;
+				highScoreOnes = gameScoreOnes;
+			}
+			else if (gameScoreTens == highScoreTens && gameScoreOnes > highScoreOnes) {
+				highScoreTens = gameScoreTens;
+				highScoreOnes = gameScoreOnes;
+			}
+			else {
+				highScoreTens = highScoreTens;
+				highScoreOnes = highScoreOnes;
+			}
+
 			nokia_lcd_clear();
 			nokia_lcd_write_string("FINAL SCORE:", 1);
 			nokia_lcd_set_cursor(73, 0);
