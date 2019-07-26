@@ -8,7 +8,8 @@
  *	code, is my own original work.
  */
 
-//Note: First demo completed as of 7/23/2019, Nokia LCD and custom characters working
+//Update 7/23/2019: First demo done, Nokia LCD and custom characters working
+//Update 7/25/2019: Custom project completed for class, may continue to work on this on my own time later
 
 #include <avr/io.h>
 //#include <avr/eeprom.h>
@@ -626,7 +627,6 @@ int itemSMTick(int state) {
 			}
 			//If ones digit is 9 and gemCnt is at least 2, increment tens digit by one and set ones digit to 0
 			else if (gameScoreOnes == 57 && gemCnt >= 2) {
-				//dummy comment lmao
 				gemCnt = 0;
 				gameScoreTens = gameScoreTens + 1;
 				gameScoreOnes = 48;
