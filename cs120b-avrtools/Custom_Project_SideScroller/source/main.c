@@ -23,28 +23,28 @@
 #include "../header/io.h"
 #include <avr/eeprom.h>
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Global variables
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define input (~PINB & 0x0F)
+#define MAX 45
 
 /* Stats used */
-unsigned char gameTimeTens = 0;
+unsigned char gameTimeTens = 0; //Need to use two chars to represent each digit on Nokia screen
 unsigned char gameTimeOnes = 0;
 unsigned char gameScoreTens = 48;
 unsigned char gameScoreOnes = 48;
 unsigned char gameStaminaTens = 48;
 unsigned char gameStaminaOnes = 53;
+unsigned char highScoreTens = 48;
+unsigned char highScoreOnes = 48;
 unsigned char runCnt = 0;
 unsigned char updateCnt = 0;
 unsigned short timerCnt = 0;
-
-unsigned char highScoreTens = 48;
-unsigned char highScoreOnes = 48;
-
 unsigned char gemCnt = 0;
 unsigned char demonCnt = 0;
 unsigned char fruitCnt = 0;
-
-/* Initializes player position to bottom right of 16x2 lcd */
-unsigned char playerPos = 17;
+unsigned char playerPos = 17; //Player position inialized
 
 /* Custom characters created as arrays */
 unsigned char player[8] = { 0x18, 0x0C, 0x16, 0x1D, 0x1F, 0x16, 0x0C, 0x18 };
@@ -52,41 +52,34 @@ unsigned char gem[8] = { 0x04, 0x0A, 0x11, 0x15, 0x15, 0x11, 0x0A, 0x04 };
 unsigned char demon[8] = { 0x11, 0x1F, 0x0E, 0x04, 0x1F, 0x15, 0x0E, 0x1B };
 unsigned char fruit[8] = { 0x00, 0x0E, 0x04, 0x0E, 0x1F, 0x1F, 0x0E, 0x00 };
 
-/* Data used for keeping track of arrays for scrolling */
-#define MAX_SIZE 45
-
-/* Testing for gems */
-//const unsigned char Bottom[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20 };
-//const unsigned char Top[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20 };
-
-/* Testing for demons */
-//const unsigned char Bottom[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20, 0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20 };
-//const unsigned char Top[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20, 0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20 };
-
-/*Testing for fruit */
-//const unsigned char Bottom[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20 };
-//const unsigned char Top[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20 };
-
-/* Map used for video */
-const unsigned char Top[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20,
-					0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20 };
-const unsigned char Bottom[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x20, 
-						0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20 }; 
+/* Character array to be put out to top row */
+const unsigned char TopSource[MAX] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 
+					0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20,0x20, 0x20, 0x20, 
+					0x20, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20 };
+/* Character array to be put out to bottom row */
+const unsigned char BottomSource[MAX] = { 0x20, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20,
+					 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+					 0x01, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20 }; 
 
 //Next two arrays will be used to actually output data from respective source arrays onto LCD
-unsigned char top[17];
-unsigned char bottom[17];
-//unsigned char test[17];
+unsigned char top[16];
+unsigned char bottom[16];
 
-unsigned char start1[31] = "GETAWAY SWIMMER: THE FISH THIEF";
+//Title
+unsigned char title[31] = "GETAWAY SWIMMER: THE FISH THIEF";
 
-/* 16x2 states, displays the actual game */
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//LCD State Machine: Displays the game on the 16x2 LCD, including the player and all items generated
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* States for LCD */
 enum lcd_States { l_init, l_menu, l_reset, l_startup, l_scroll, l_final, l_hold };
 
 int lcdSMTick(int state) {
 	unsigned char it;
-	static unsigned char maxIndex;
+	static unsigned char sourcePos;
 
+	/* Transition states */
 	switch(state) {
 		case l_init:
 			state = l_startup;
@@ -151,17 +144,17 @@ int lcdSMTick(int state) {
 			state = l_init;
 			break;
 	}
+	/* Actions */
 	switch(state) {
 		case l_init:
 			break;
 		case l_startup:
-			maxIndex = 17;
-			strcpy(top, Top);
-//			strcpy(test, Test);
-			strcpy(bottom, Bottom);
+			sourcePos = 17;
+			strcpy(top, TopSource);
+			strcpy(bottom, BottomSource);
 			break;
 		case l_menu:
-			LCD_DisplayString(1, start1);
+			LCD_DisplayString(1, title);
 			break;
 		case l_reset:
 			break; 
@@ -172,36 +165,35 @@ int lcdSMTick(int state) {
 				LCD_WriteData(top[it]);
 				LCD_Cursor(it + 17);
 				LCD_WriteData(bottom[it]);
-//				LCD_WriteData(test[loopIndex]);
 			}
 			//Updates either 1 or 17 to display the player
 			LCD_Cursor(playerPos);
 			LCD_WriteData(0);
 			// Remove the first character from top and bottom arrays and add next characters from source arrays to the back
-			if (maxIndex < MAX_SIZE) {
+			if (sourcePos < MAX) {
 				for (it = 0; it < 15; it++) {
 					top[it] = top[it + 1];
 				}
-				top[15] = Top[maxIndex];
+				top[15] = TopSource[sourcePos];
 				for (it = 0; it < 15; it++) {
 					bottom[it] = bottom[it + 1];
 				}
-				bottom[15] = Bottom[maxIndex];
-				maxIndex++;
+				bottom[15] = BottomSource[sourcePos];
+				sourcePos++;
 			}
 			else {
-				maxIndex = 0;
+				sourcePos = 0;
 			}
 			break;
 		case l_final:
 			LCD_DisplayString(1, "TIME'S UP!");
-			maxIndex = 0;
+			sourcePos = 0;
 			break;
 		case l_hold:
 			LCD_ClearScreen();
-			maxIndex = 17;
-			strcpy(top, Top);
-			strcpy(bottom, Bottom);
+			sourcePos = 17;
+			strcpy(top, TopSource);
+			strcpy(bottom, BottomSource);
 			break;
 		default:
 			break;
@@ -209,7 +201,10 @@ int lcdSMTick(int state) {
 	return state;
 }
 
-/* Nokia states, displays stats on the nokia screen */
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Nokia State Machine: Displays stats on a Nokia 5110 LCD
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* States for Nokia */
 enum nokia_States { n_init, n_init2, n_menu, n_reset, n_run, n_update, n_final, n_hold };
 
 int nokiaSMTick(int state) {
@@ -295,6 +290,7 @@ int nokiaSMTick(int state) {
 			state = n_init;
 			break;
 	}
+	/* Actions */
 	switch(state) {
 		case n_init:
 			break;
@@ -427,10 +423,15 @@ int nokiaSMTick(int state) {
 	return state;
 }
 
-/* Player states */
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Player State Machine: Controller state, moves the player character up and down
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* States for player */
 enum player_States { p_init, p_wait, p_press, p_up, p_upHold, p_down, p_downHold };
 
 int playerSMTick(int state) {
+	/* Transitions */
 	switch(state) {
 		case p_init:
 			break;
@@ -480,6 +481,7 @@ int playerSMTick(int state) {
 			state = p_init;
 			break;
 	}
+	/* Actions */
 	switch(state) {
 		case p_init:
 			playerPos = 17; //Remove this if needed
@@ -523,10 +525,15 @@ int playerSMTick(int state) {
 	return state;
 }
 
-/* Item interactions, testing phase */
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Items State Machine: Determines how player interacts with items
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* States for items */
 enum item_States { i_init, i_startup, i_reset, i_wait, i_upScore, i_downScore, i_upStam };
 
 int itemSMTick(int state) {
+	/* Transitions */
 	switch(state) {
 		case i_init:
 			state = i_startup;
@@ -581,6 +588,7 @@ int itemSMTick(int state) {
 			state = i_init;
 			break;
 	}
+	/* Actions */
 	switch(state) {
 		case i_init:
 			break;
@@ -665,6 +673,10 @@ int itemSMTick(int state) {
 	return state;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Main function
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main(void) {
 	/* Insert DDR and PORT initializations */
 	DDRA = 0xFF; PORTA = 0x00;
@@ -724,3 +736,18 @@ int main(void) {
 	return 1;	
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Simpler maps held here, used for testing
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* Testing for gems */
+//const unsigned char BottomSource[MAX] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20 };
+//const unsigned char TopSource[MAX] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20,0x01,0x20,0x20,0x20,0x20,0x20 };
+
+/* Testing for demons */
+//const unsigned char Bottom[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20, 0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20 };
+//const unsigned char Top[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20, 0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20,0x02,0x20,0x20,0x20,0x20,0x20 };
+
+/*Testing for fruit */
+//const unsigned char Bottom[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20 };
+//const unsigned char Top[MAX_SIZE] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20,0x03,0x20,0x20,0x20,0x20,0x20 };
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
