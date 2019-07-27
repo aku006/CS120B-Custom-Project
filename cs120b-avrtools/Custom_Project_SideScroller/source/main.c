@@ -38,7 +38,7 @@ unsigned char gameStaminaTens = 48;
 unsigned char gameStaminaOnes = 53;
 unsigned char highScoreTens = 48;
 unsigned char highScoreOnes = 48;
-unsigned char runCnt = 0;
+unsigned char runCnt = 0; //Counts needed to help game run in real time with chosen periods
 unsigned char updateCnt = 0;
 unsigned short timerCnt = 0;
 unsigned char gemCnt = 0;
@@ -52,16 +52,16 @@ unsigned char gem[8] = { 0x04, 0x0A, 0x11, 0x15, 0x15, 0x11, 0x0A, 0x04 };
 unsigned char demon[8] = { 0x11, 0x1F, 0x0E, 0x04, 0x1F, 0x15, 0x0E, 0x1B };
 unsigned char fruit[8] = { 0x00, 0x0E, 0x04, 0x0E, 0x1F, 0x1F, 0x0E, 0x00 };
 
-/* Character array to be put out to top row */
+/* Character array  that contains what will be put out on top row */
 const unsigned char TopSource[MAX] = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 
 					0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20,0x20, 0x20, 0x20, 
 					0x20, 0x20, 0x20, 0x20, 0x03, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20 };
-/* Character array to be put out to bottom row */
+/* Character array that contains what will be put out on bottom row */
 const unsigned char BottomSource[MAX] = { 0x20, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20,
 					 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
 					 0x01, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x02, 0x20, 0x20, 0x20, 0x20, 0x20 }; 
 
-//Next two arrays will be used to actually output data from respective source arrays onto LCD
+//Smaller arrays that take from the source arrays and actually output them onto the 16x2 LCD
 unsigned char top[16];
 unsigned char bottom[16];
 
@@ -76,8 +76,9 @@ unsigned char title[31] = "GETAWAY SWIMMER: THE FISH THIEF";
 enum lcd_States { l_init, l_menu, l_reset, l_startup, l_scroll, l_final, l_hold };
 
 int lcdSMTick(int state) {
-	unsigned char it;
-	static unsigned char sourcePos;
+	/* Local variables */
+	unsigned char it; //Used to traverse the smaller top and bottom arrays
+	static unsigned char sourcePos; //Traverse the source array when determining what to put into smaller arrays
 
 	/* Transition states */
 	switch(state) {
@@ -208,7 +209,8 @@ int lcdSMTick(int state) {
 enum nokia_States { n_init, n_init2, n_menu, n_reset, n_run, n_update, n_final, n_hold };
 
 int nokiaSMTick(int state) {
-	unsigned char eeScore;
+	/* Local variable */
+	unsigned char eeScore; //Stores the high score into EEPROM
 
 	/* Transitions */
 	switch(state) {
